@@ -1,4 +1,7 @@
-%% White matter example for bSSFP and SPGR
+%% 19-4-2019: This script performs simulations of bSSFP and SPGR for white matter
+% Shaihan Malik, King's College London, 2019
+
+%% Generates figures 3 and 7 from the paper
 
 tissuepars = init_tissue('ic');
 
@@ -65,7 +68,7 @@ for IX = 1:2
     
 end
 
-%% Plots
+%% Figure 3 from paper
 
 figfp(1)
 nr=2;nc=2;
@@ -99,7 +102,6 @@ for jj=1:2
 end
 
 % add legend;
-%ll = legend('Single band RF pulses','2+ band RF pulses','3 band RF pulses');
 ll = legend('S_{1B}','S_{2B}','S_{3B}');
 ll.AutoUpdate = 'off';
 
@@ -148,7 +150,7 @@ text(-25,0.06,'f = 1','fontsize',18,'fontweight','bold','rotation',90,'fontangle
 
 %%% annotation
 a1 = annotation('textarrow',[0.2786 0.2214],[0.6878 0.7715],'String','\DeltaMT','fontsize',13);
-a2 = annotation('textarrow',[0.3361 0.2789],[0.2358 0.3195],'String','\DeltaihMT','fontsize',13);
+a2 = annotation('textarrow',[0.3014 0.2442],[0.2172 0.3009],'String','\DeltaihMT','fontsize',13);
 a1.HeadStyle = 'cback1';
 a2.HeadStyle = 'cback1';
 a1.HeadWidth = 6;
@@ -289,104 +291,8 @@ for jj=1:n
 end
 
 
-%% Combined figure
 
-% nr=2;nc=3;
-% figfp(2)
-% subplot(nr,nc,2)
-% % ihMT ratio
-% [bb,dd]=meshgrid(deltaf*1e-3,b1rms);
-% [cc,hh]=contourf(bb,dd,abs(ssfp_b1_delta(:,:,2)-ssfp_b1_delta(:,:,3)),8);
-% % caxis([0 0.25])
-% grid on
-% clabel(cc,hh,'Color',[1 1 1]);
-% hh.LineColor = [1 1 1];
-% hh.LineWidth = 2;
-% xlabel('\Delta/2\pi, kHz')
-% ylabel('B_1^{rms}, uT')
-% colorbar
-% %set(gca,'fontsize',12)
-% title ('\DeltaihMT')
-% 
-% subplot(nr,nc,1)
-% % ihMT ratio
-% [ff,dd]=meshgrid(deltaf*1e-3,180*flipangle/pi);
-% [cc,hh]=contourf(ff,dd,abs(ssfp_fa_delta(:,:,2)-ssfp_fa_delta(:,:,3)),8);
-% % caxis([0 0.25])
-% grid on
-% clabel(cc,hh,'Color',[1 1 1]);
-% hh.LineColor = [1 1 1];
-% hh.LineWidth = 2;
-% xlabel('\Delta/2\pi, kHz')
-% ylabel('FA, deg')
-% colorbar
-% %set(gca,'fontsize',12)
-% title ('\DeltaihMT')
-% 
-% subplot(nr,nc,5)
-% 
-% % ihMT ratio
-% [bb,dd]=meshgrid(deltaf*1e-3,b1rms);
-% [cc,hh]=contourf(bb,dd,abs(ssfp_b1_delta(:,:,2)-ssfp_b1_delta(:,:,3))./abs(ssfp_b1_delta(:,:,1)),[0:0.02:0.2]);
-% caxis([0 0.25])
-% grid on
-% clabel(cc,hh,'Color',[1 1 1]);
-% hh.LineColor = [1 1 1];
-% hh.LineWidth = 2;
-% xlabel('\Delta/2\pi, kHz')
-% ylabel('B_1^{rms}, uT')
-% colorbar
-% %set(gca,'fontsize',12)
-% title ('ihMTR')
-% 
-% subplot(nr,nc,4)
-% % ihMT ratio
-% [ff,dd]=meshgrid(deltaf*1e-3,180*flipangle/pi);
-% [cc,hh]=contourf(ff,dd,abs(ssfp_fa_delta(:,:,2)-ssfp_fa_delta(:,:,3))./abs(ssfp_fa_delta(:,:,1)),[0:0.02:0.2]);
-% caxis([0 0.25])
-% grid on
-% clabel(cc,hh,'Color',[1 1 1]);
-% hh.LineColor = [1 1 1];
-% hh.LineWidth = 2;
-% xlabel('\Delta/2\pi, kHz')
-% ylabel('FA, deg')
-% colorbar
-% %set(gca,'fontsize',12)
-% title ('ihMTR')
-% 
-% 
-% % B1 max
-% subplot(nr,nc,3)
-% [bb,trs]=meshgrid(tr*1e3,b1rms);
-% [cc,hh]=contourf(bb,trs,abs(b1max),5:5:40);
-% grid on
-% clabel(cc,hh,'Color',[1 1 1]);
-% hh.LineColor = [1 1 1];
-% hh.LineWidth = 2;
-% xlabel('TR, ms')
-% ylabel('B_1^{rms}, uT')
-% colorbar
-% % set(gca,'fontsize',12)
-% title ('Max B_1 (\muT)')
-% 
-% % add patch
-% pp = patch([2 2 4 4],[2 8 8 2],1);
-% pp.FaceColor = [1 1 1];
-% pp.EdgeColor = 'none';
-% pp.FaceAlpha = 0.7;
-% 
-% % add text
-% % text(1,9.5,'(a)','fontweight','bold','fontsize',15)
-% % text(1,1,'(b)','fontweight','bold','fontsize',15)
-% % 
-% % text(11.8,5,'\muT','fontweight','bold','fontsize',13)
-% % text(11.3,13.4,'ihMTR','fontweight','bold','fontsize',13)
-% 
-% setpospap([100 254   1092 526])
-% % print -dpng -r300 figs/whcontrastfig.png
-% 
-
-%% combined figure, imagesc
+%% Figure 7
 
 nr=2;nc=3;
 figfp(2)
@@ -467,9 +373,7 @@ text(-15,1,'(b)','fontweight','bold','fontsize',15)
 text(-30,-7,'(c)','fontweight','bold','fontsize',15)
 text(-15,-7,'(d)','fontweight','bold','fontsize',15)
 text(0,1,'(e)','fontweight','bold','fontsize',15)
-% 
-% text(11.8,5,'\muT','fontweight','bold','fontsize',13)
-% text(11.3,13.4,'ihMTR','fontweight','bold','fontsize',13)
+
 
 setpospap([100 254   1092 526])
 print -dpng -r300 figs/whcontrastfig.png

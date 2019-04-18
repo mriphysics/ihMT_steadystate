@@ -1,5 +1,4 @@
 %%% Feb 2019 Initialise tissue parameters
-% 13/3/2019 - add flag for lineshape
 function pars = init_tissue(name)
 
 pars = struct;

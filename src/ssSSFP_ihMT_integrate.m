@@ -1,7 +1,26 @@
-%% 13-6-17: steady state with MT, balanced -- now matrix version, not analytic
-%% 12-1-18: ihMT version - see lab book #22, this date
-%% Feb 2019 update
-function [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi, tissuepars,varargin)
+%%% [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi, tissuepars)
+%
+%   Steady-state ihMT SPGR sequence with eigenvector based time integration method
+%
+%   INPUTS:         
+%           b1pulse    = RF pulse, Mx3 array (M=#timepoints, 3=frequency
+%                        bands). Units are uT
+%           dt         = dwell time, sec
+%           Delta_Hz   = 1x3 vector of frequencies of each band. Typically 
+%                        [-delta 0 delta]. Units Hz
+%           TR         = repetition time, sec
+%           dphi       = off-resonance phase per TR (rad)
+%           tissuepars = structure containing all tissue parameters. See
+%                        init_tissue()
+%
+%  OUTPUTS:
+%           Mss        = Steady-state Mxy (after excitation pulse)
+%           Mz         = Longitudinal magnetization, including semisolid
+%                        terms
+%
+% (c) Shaihan Malik 2019. King's College London
+
+function [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi, tissuepars)
 
 %%% Unpack tissue parameters
 M0s = tissuepars.semi.M0;  %<--- TOTAL semisolid fraction
@@ -17,21 +36,11 @@ T2s = tissuepars.semi.T2;
 % Overall exchange rate for free and both semisolid pools
 k = tissuepars.k;
 
-%%% Other args
-lineshape = 1;  %<-- Super Lorentzian is assumed
-
-if ~isempty(varargin)
-    if strcmpi(varargin{1},'gaussian')
-        lineshape = 2;
-    end
-    
-end
-
 %%% lineshape
-switch lineshape
-    case 1
+switch tissuepars.lineshape
+    case 'SL'
         [G,w_loc] = SuperLorentzian_lineshape(T2s,Delta_Hz);% seconds
-    case 2
+    case 'Gaussian'
         [G,w_loc] = gauss_lineshape(T2s,Delta_Hz);% seconds
 end
 

@@ -25,9 +25,9 @@ b1sqrd = {};
 b1pulse= {};
 for ii=1:nf
     % 3 bands
-    [pulses{ii,1},b1sqrd{ii,1},b1pulse{ii,1}] = gen_MB_pulse(flips(ii),tau,TR,b1_rms,delta,'3','sigma',2,'dt',dt); 
+    [pulses{ii,1},b1sqrd{ii,1},b1pulse{ii,1}] = gen_MB_pulse(flips(ii),tau,TR,b1_rms,delta,'3','alpha',3,'dt',dt); 
     % 2 bands
-    [pulses{ii,2},b1sqrd{ii,2},b1pulse{ii,2}] = gen_MB_pulse(flips(ii),tau,TR,b1_rms,delta,'2+','sigma',2,'dt',dt);
+    [pulses{ii,2},b1sqrd{ii,2},b1pulse{ii,2}] = gen_MB_pulse(flips(ii),tau,TR,b1_rms,delta,'2+','alpha',3,'dt',dt);
 end
 
 

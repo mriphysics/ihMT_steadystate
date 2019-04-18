@@ -1,5 +1,27 @@
-%%% New function, Feb 2019 for publication
-
+%%% function [Mss,Mz] = ssSSFP_ihMT(flipangle,b1sqrd,Delta_Hz,TR,tau,dphi, tissuepars,varargin)
+%
+%   Steady-state ihMT SPGR sequence. For non-selective multiband sequences
+%
+%   INPUTS:         
+%           flipangle  = flip angle on resonance (rad)
+%           b1sqrd     = mean square B1+ per frequency band of
+%                        multiband pulse (over the duration of the pulse). 
+%                        1x3 vector (so far we assume 3 bands maximum but 
+%                        this could be changed). Units uT^2
+%           Delta_Hz   = 1x3 vector of frequencies of each band. Typically 
+%                        [-delta 0 delta]. Units Hz
+%           TR         = repetition time, sec
+%           tau        = pulse duration, sec
+%           dphi       = Off-resonance phase gained per TR, unit=radians
+%           tissuepars = structure containing all tissue parameters. See
+%                        init_tissue()
+%
+%  OUTPUTS:
+%           Mss        = Steady-state Mxy (after excitation pulse)
+%           Mz         = Longitudinal magnetization, including semisolid
+%                        terms
+%
+% (c) Shaihan Malik 2019. King's College London
 
 function [Mss,Mz] = ssSSFP_ihMT(flipangle,b1sqrd,Delta_Hz,TR,tau,dphi, tissuepars,varargin)
 
@@ -16,21 +38,6 @@ T2s = tissuepars.semi.T2;
 
 % Overall exchange rate for free and both semisolid pools
 k = tissuepars.k;
-
-%%% Other args
-% lineshape = 1;  %<-- Super Lorentzian is assumed
-version = 1;    %<-- standard SS formalism vs eigenvector version
-
-if ~isempty(varargin)
-%     if strcmpi(varargin{1},'gaussian')
-%         lineshape = 2;
-%     end
-    
-    if strcmpi(varargin{1},'eig')
-        version = 2;
-    end
-    
-end
 
 %%% lineshape
 switch tissuepars.lineshape
@@ -80,38 +87,17 @@ C = [0 0 R1(1)*M0f R1(2)*(1-f)*M0s R1(3)*f*M0s 0].';
 Phi = diag([-1 -1 1 1 1 1]);
         
         
-%% Now decide on which version:
-switch version
-    
-    case 1  % Steady-state formula version
-        S = expm(Lambda*TR);
-        I = eye(6);
-            
-        % SS solution
-        Mss_all =  S^0.5 * inv(Phi - R*S) * R * (S-I)*inv(Lambda)*C;
-                
-        Mss = ([1 1i 0 0 0 0])*Mss_all; % return transverse magnetization
-        
-        Mz = abs(Mss_all(3:end)); % return Mz
+%% Now compute the steady-state
+S = expm(Lambda*TR);
+I = eye(6);
 
-    case 2 % Eigenvector decomposition version
-%         LC = cat(1,[Lambda Z],zeros(1,7));
-%         
-%         %%% RF matrix
-%         AlphaPrime = blkdiag(Alpha,1); %<-- add 1 here not zero as this is post expm
-%         
-%         %%% spoiling
-%         D = blkdiag(D,1);
-%         
-%         %%% overall matrix
-%         X = AlphaPrime * D * expm(LC*TR);
-%         
-%         [v,d,w] = eig(X);
-%         
-%         MssAll = v(1:end-1,end)/v(end,end); %<-- normalise to the last component so it stays as 1 .... dubious?
-% 
-%         Mss = S*MssAll;
-%         Mz = abs(MssAll(3:end)); % return Mz
-end
+% SS solution
+Mss_all =  S^0.5 * inv(Phi - R*S) * R * (S-I)*inv(Lambda)*C;
+
+Mss = ([1 1i 0 0 0 0])*Mss_all; % return transverse magnetization
+
+Mz = abs(Mss_all(3:end)); % return Mz
+
+
 
 end

@@ -1,8 +1,6 @@
-% Script to investigate the instantaneous pulse assumption
-%%% 2019-04-19 - Automatically copmute the FWHM. Use alpha parameter for
-%%% Gausswin=3 to be consistent throughout paper.
-
-%%% Test the SSFP simulations
+%% 19-4-2019: This script tests the instantaneous pulse approximation against time
+%% integration of the BMP equations directly
+% Shaihan Malik, King's College London, 2019
 
 tissuepars = init_tissue('ic');
 
@@ -34,7 +32,6 @@ end
 
 %%% Extra pars needed for SSFP
 dphi=0;
-
 
 % loop over the different flips
 Mssfp = zeros([nf 3 3]); % Flips, #bands, type of simulation
@@ -220,58 +217,6 @@ end
 
 
 
-%%
-figfp(1)
-
-for ii=1:3
-    subplot(2,3,ii)
-%     imsjm((abs(M(:,:,2,ii))-abs(M(:,:,1,ii)))./abs(M(:,:,2,ii)),[0 0.1])
-    [cc,hh]=contourf(1e3*tau,T1D,100*abs(abs(Mssfp_all(:,:,2,ii))-abs(Mssfp_all(:,:,1,ii)))./abs(Mssfp_all(:,:,2,ii)),0:1:10);
-    title(sprintf('%d band, error',ii))
-    set(gca,'Yscale','log')
-    grid on
-    caxis([0 10])
-    hh.LineColor = [1 1 1];
-    
-    xlabel('Pulse duration \tau (ms)')
-    ylabel('Dipolar relaxation time T_{1D}^s (s)')
-    
-    subplot(2,3,ii+3)
-    [cc,hh]=contourf(1e3*tau,T1D,100*abs(abs(Mssfp_all(:,:,2,ii))-abs(Mssfp_all(:,:,3,ii)))./abs(Mssfp_all(:,:,2,ii)),0:1:10);
-    title(sprintf('%d band, error with correction',ii))
-    set(gca,'Yscale','log')
-    caxis([0 10])
-    xlabel('Pulse duration \tau (ms)')
-    ylabel('Dipolar relaxation time T_{1D}^s (s)')
-    hh.LineColor = [1 1 1];
-    grid on
-       
-
-    colormap hot
-end
-
-cc = colorbar;
-cc.Position = [0.93 0.3 0.02 0.5];
-
-figfp(2)
-nb = [1 2 3];
-for ii=1:3
-    subplot(1,3,ii)
-    [cc,hh]=contourf(1e3*tau,T1D,100*abs(abs(Mspgr_all(:,:,2,ii))-abs(Mspgr_all(:,:,1,ii)))./abs(Mspgr_all(:,:,2,ii)),0:1:10);
-    title(sprintf('%d band, error',ii))
-    set(gca,'Yscale','log')
-    grid on
-    caxis([0 10])
-    hh.LineColor = [1 1 1];
-    
-    xlabel('Pulse duration \tau (ms)')
-    ylabel('Dipolar relaxation time T_{1D}^s (s)')
-    
-    colormap hot
-end
-
-cc = colorbar;
-cc.Position = [0.93 0.3 0.02 0.5];
 
 
 
@@ -289,10 +234,10 @@ grid on
 pl=get(gca,'children');
 pl(1).Color = [0 0 0];
 legend('Instantaneous, Eq.[4]','Full integration')
-ylim([0 0.05])
+ylim([0 0.04])
 ylabel('Signal/M_0')
 xlabel('flip, deg')
-title('SPGR (2+ Bands)')
+title('SPGR (2B)')
 
 subplot(nr,nc,nc+1)
 plot(r2d(flips),squeeze(abs(Mssfp(:,2,:))),'linewidth',1.5)
@@ -303,19 +248,19 @@ pl(1).Color = [1 0.2 0.2];
 pl(2).Color = [0 0 0];
 ll=legend('Instantaneous, Eq.[5]','Full integration','Bieri-Scheffler correction');
 ll.Position = [0.1032 0.1338 0.1700 0.0967];
-ylim([0 0.12])
+ylim([0 0.10])
 ylabel('Signal/M_0')
 xlabel('flip, deg')
-title('bSSFP (2+ Bands)')
+title('bSSFP (2B)')
 
 %%% Now SPGR, no correction
-titls = {'Single Band','2+ Bands','3 Bands'};
+titls = {'1B','2B','3B'};
 for ii=1:3    
     subplot(nr,nc,ii+1)
     [cc,hh]=contourf(1e3*tau,T1D,100*abs(abs(Mspgr_all(:,:,2,ii))-abs(Mspgr_all(:,:,1,ii)))./abs(Mspgr_all(:,:,2,ii)),0:2:10);
     hh.LineWidth = 1.5;
     clabel(cc,hh,'Color',[1 1 1]);
-    title(titls{ii})
+    title(titls{ii},'fontsize',18)
     set(gca,'Yscale','log')
     grid on
     caxis([0 10])
@@ -361,7 +306,7 @@ for ii=1:3
 end
 % colormap hot
 
-setpospap([100 100 1100 535])
+setpospap([100 100 1100 635])
 
 gg = get(gcf,'children');
 
@@ -384,15 +329,15 @@ end
 axes(gg(13))
 text(140,0.055,'Percentage error from instantaneous approximation','fontsize',13,'fontweight','bold');
 
-text(90,0.02,'SPGR','rotation',90,'fontsize',14,'fontweight','bold')
-text(97,0.012,'instantaneous','rotation',90,'fontsize',13,'fontweight','bold')
+text(90,0.015,'SPGR','rotation',90,'fontsize',14,'fontweight','bold')
+text(97,0.0085,'instantaneous','rotation',90,'fontsize',13,'fontweight','bold')
 
 
-text(90,-0.045,'bSSFP','rotation',90,'fontsize',14,'fontweight','bold')
-text(97,-0.035,'instantaneous','rotation',90,'fontsize',13,'fontweight','bold')
-text(97,-0.067,'corrected','rotation',90,'fontsize',13,'fontweight','bold')
+text(90,-0.04,'bSSFP','rotation',90,'fontsize',14,'fontweight','bold')
+text(97,-0.028,'instantaneous','rotation',90,'fontsize',13,'fontweight','bold')
+text(97,-0.055,'corrected','rotation',90,'fontsize',13,'fontweight','bold')
 
-text(310,-0.02,'nrmse(%)','rotation',0,'fontsize',13,'fontweight','bold')
+text(310,-0.015,'nrmse(%)','rotation',0,'fontsize',13,'fontweight','bold')
 
 
 %%% Color bar

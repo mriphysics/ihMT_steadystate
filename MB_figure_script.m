@@ -1,3 +1,6 @@
+%% 19-4-2019: This script makes Figure 2 from the paper
+% Shaihan Malik, King's College London, 2019
+
 %%
 addpath(genpath('../../working/ihMT'))
 addpath(genpath('src'))
@@ -53,56 +56,6 @@ for ii=1:3
 end
         
 
-%% Figure for paper
-figfp(201);
-
-tag = {'2^+','2^-','3'};
-for ii=1:3
-    pwr = abs(F*pulses{ii}).^2;
-    
-    subplot(3,1,ii)
-    plot(ff*1e-3,pwr,'linewidth',1,'color',[0 0 0])
-    grid on
-    ylim([0 0.025])
-    xlabel('Frequency offset, \Delta/2\pi (Hz)')
-    ylabel('power (au)')
-    set(gca,'YTickLabel','','XTick',-10:2:10)
-    title(sprintf('Bands: %s',tag{ii}))
-    
-    %%% shadse bands
-    idx = ff>-1e3&ff<1e3;
-    hold on
-    H = area(ff(idx)*1e-3,pwr(idx));
-    set(H(1),'FaceColor',[0.7 1 0.7]);
-    
-    idx = ff>6e3&ff<8e3;
-    hold on
-    H = area(ff(idx)*1e-3,pwr(idx));
-    set(H(1),'FaceColor',[1 0.5 0.5]);
-    
-    idx = ff>-8e3&ff<-6e3;
-    hold on
-    H = area(ff(idx)*1e-3,pwr(idx));
-    set(H(1),'FaceColor',[1 0.5 0.5]);
-end
-
-%%% add annotations
-gg=get(gcf,'children');
-axes(gg(1));
-text(-0.2,0.002,'1')
-text(6.7,0.0025,'$\frac{\beta}{2}$','interpreter','latex','fontsize',13)
-text(-7.3,0.0025,'$\frac{\beta}{2}$','interpreter','latex','fontsize',13)
-
-axes(gg(2));
-text(-0.2,0.002,'1')
-text(-7.3,0.004,'$\beta$','interpreter','latex','fontsize',13)
-
-axes(gg(3));
-text(-0.2,0.002,'1')
-text(6.7,0.004,'$\beta$','interpreter','latex','fontsize',13)
-
-setpospap([400 200 350 450])
-print('-dpng','-r300','figs/fig2.png')
 
 %% Figure with time domain as well
 
