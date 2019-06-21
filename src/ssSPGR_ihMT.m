@@ -46,7 +46,7 @@ k = tissuepars.k;
 %%% lineshape
 switch tissuepars.lineshape
     case 'SL'
-        [G,w_loc] = SuperLorentzian_lineshape(T2s,Delta_Hz);% seconds
+        [G,w_loc] = SuperLorentzian_lineshape(T2s,Delta_Hz,'interpzero');% seconds
     case 'Gaussian'
         [G,w_loc] = gauss_lineshape(T2s,Delta_Hz);% seconds
 end

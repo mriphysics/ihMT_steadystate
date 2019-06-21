@@ -6,7 +6,7 @@ addpath(genpath('../../working/ihMT'))
 addpath(genpath('src'))
 %%
 
-theta = d2r(35);
+theta = deg2rad(35);
 dur = 2e-3;
 TR = 5e-3;
 b1rms = 2;

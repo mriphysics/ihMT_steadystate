@@ -20,9 +20,17 @@ function [G,w_loc] = SuperLorentzian_lineshape(T2b,fsample,varargin)
 %%% A suggested by Gloor, we can interpolate the lineshape across from
 %%% ±1kHz
 interpzero = false;
+interptheta = false;
+Ntheta=128; %<-- number of points for theta integral
 for ii=1:length(varargin)
     if strcmpi(varargin{ii},'interpzero')
         interpzero = true;
+    end
+    if strcmpi(varargin{ii},'Ntheta')
+        Ntheta = varargin{ii+1};
+    end
+    if strcmpi(varargin{ii},'interptheta')
+        interptheta = true;
     end
 end
 
@@ -30,25 +38,52 @@ end
 if interpzero
     % compute over a wider range of frequencies
     n=128;
-    ff = linspace(1.1*(min(fsample)),1.1*(max(fsample)),n);
+    if min(fsample)>-2e3
+        fmin=-2e3;
+    else
+        fmin = min(fsample)*1.1;
+    end
+    if max(fsample)<2e3
+        fmax=2e3;
+    else
+        fmax = max(fsample)*1.1;
+    end
+    ff = linspace(fmin,fmax,n);
 else
     ff = fsample;
 end
 
 %%% Variables for SL, predefine
-th = linspace(0,pi/2,512);
+th = linspace(0,pi/2,Ntheta);
 dth = th(2)-th(1);
 
 [thg,ffg]=meshgrid(th,ff);
 
 g = sin(thg).*sqrt(2/pi).*T2b./(abs(3*cos(thg).^2-1));
 g = g .* exp(-2*(2*pi*ffg*T2b./abs(3*cos(thg).^2-1)).^2);
+
+%% at this point try to interpolate over the angles not the line value
+if interptheta
+   
+    magic_angle = acos(1/sqrt(3));
+
+    po = find(abs(th-magic_angle)<d2r(3)); % points to interpolate
+    pu = find((abs(th-magic_angle)>d2r(3))&(abs(th-magic_angle)<d2r(10))); % points to use
+   
+   %%% loop over frequencies
+   for ii=1:length(ff)
+       tmp = spline(th(pu),g(ii,pu),th(po));
+       g(ii,po) = tmp;
+   end
+end
+
+%%
 G = dth*sum(g,2);
 
 %
 if interpzero
-    po = find(abs(ff)<1.5e3); % points to interpolate
-    pu = find((abs(ff)>1e3)&(abs(ff)<2e3)); % points to use
+    po = find(abs(ff)<1.e3); % points to interpolate
+    pu = find((abs(ff)>1.e3)&(abs(ff)<2e3)); % points to use
     
     Gi = spline(ff(pu),G(pu),ff(po));
     G(po) = Gi;

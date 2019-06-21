@@ -8,7 +8,7 @@ tissuepars = init_tissue('ic');
 %%% Set up sequence
 
 %%% generate some pulses
-flips = d2r([1:2:30 35:5:80]);
+flips = deg2rad([1:2:30 35:5:80]);
 nf = length(flips);
 tau = 2e-3;
 TR = 5e-3;
@@ -102,7 +102,7 @@ end
 %% Now consider a fixed flip angle, look at different pulse duration and dipolar relaxation time
 
 %%% generate some pulses
-flipangle = d2r(60);
+flipangle = deg2rad(60);
 
 % range of tau and dipolar T1
 n=16;
@@ -170,7 +170,7 @@ end
 
 %% Now do the SPGR version - for Ernst angle (7.1)
 flipangle = acos(exp(-TR*tissuepars.free.R1));
-fprintf(1,'flip is %1.1f\n',r2d(flipangle));
+fprintf(1,'flip is %1.1f\n',rad2deg(flipangle));
 pulses = {};
 b1sqrd = {};
 b1pulse= {};
@@ -229,26 +229,26 @@ nc = 4;
 
 %%% Plots
 subplot(nr,nc,1)
-plot(r2d(flips),squeeze(abs(Mspgr(:,2,:))),'linewidth',1.5)
+plot(rad2deg(flips),squeeze(abs(Mspgr(:,2,:))),'linewidth',1.5)
 grid on
 pl=get(gca,'children');
 pl(1).Color = [0 0 0];
-legend('Instantaneous, Eq.[4]','Full integration')
+legend('Instantaneous, Eq.[5]','Full integration')
 ylim([0 0.04])
 ylabel('Signal/M_0')
 xlabel('flip, deg')
 title('SPGR (2B)')
 
 subplot(nr,nc,nc+1)
-plot(r2d(flips),squeeze(abs(Mssfp(:,2,:))),'linewidth',1.5)
+plot(rad2deg(flips),squeeze(abs(Mssfp(:,2,:))),'linewidth',1.5)
 grid on
 pl=get(gca,'children');
 pl(1).LineStyle='-.';
 pl(1).Color = [1 0.2 0.2];
 pl(2).Color = [0 0 0];
-ll=legend('Instantaneous, Eq.[5]','Full integration','Bieri-Scheffler correction');
+ll=legend('Instantaneous, Eq.[6]','Full integration','Bieri-Scheffler correction');
 ll.Position = [0.1032 0.1338 0.1700 0.0967];
-ylim([0 0.10])
+ylim([0 0.12])
 ylabel('Signal/M_0')
 xlabel('flip, deg')
 title('bSSFP (2B)')
@@ -337,7 +337,7 @@ text(90,-0.04,'bSSFP','rotation',90,'fontsize',14,'fontweight','bold')
 text(97,-0.028,'instantaneous','rotation',90,'fontsize',13,'fontweight','bold')
 text(97,-0.055,'corrected','rotation',90,'fontsize',13,'fontweight','bold')
 
-text(310,-0.015,'nrmse(%)','rotation',0,'fontsize',13,'fontweight','bold')
+text(307,-0.015,'% deviation','rotation',0,'fontsize',13,'fontweight','bold')
 
 
 %%% Color bar
@@ -346,3 +346,51 @@ cc = colorbar;
 cc.Position = [0.9338 0.4850 0.0152 0.2500];
 
 print -dpng -r300 figs/instantaneous_approx_fig.png
+
+
+%% Additional material - make a comparison with MAMT style integration
+
+% arbitrarily choose pulse
+II=13;
+
+% Now let's work out speed up factor
+tt1 = [];
+for ii=1:100
+    tic;[aa bb] = ssSSFP_ihMT_integrate(b1pulse{II,2},dt,Delta_Hz,TR,dphi,tissuepars);tt1(ii)=toc;
+end
+
+NTR = [100 200 300 400 500];
+n = 10; %number of repeats
+mamt = zeros([n 5]);
+tt2 = zeros([n 5]);
+for ii=1:n
+    for jj=1:5
+        tic;[cc dd mt] = ssSSFP_ihMT_integrate_MAMT(b1pulse{II,2},dt,Delta_Hz,TR,dphi,NTR(jj),tissuepars);tt2(ii,jj)=toc;
+        mamt(ii,jj)=abs([1 1i 0 0 0 0]*mt(:,end));
+        disp([ii jj])
+    end
+end
+save bin/mamt_comparison mamt NTR tt1 tt2 aa
+
+%%
+figfp(1);
+
+
+subplot(1,2,1)
+plot(NTR,100*(mean(mamt,1)-abs(aa))/abs(aa),'linewidth',2)
+grid on
+xlabel('Number of TR periods')
+ylabel('Percentage deviation')
+title('Error from not reaching steady-state')
+
+subplot(1,2,2)
+errorbar(NTR,mean(tt2,1)/mean(tt1),std(tt2,[],1)/mean(tt1),'linewidth',2)
+grid on
+xlabel('Number of TR periods')
+ylabel('Relative speed increase')
+title('Relative speed increase of eigenvalue method')
+xlim([0 550])
+ylim([0 550])
+
+
+print -dpng -r300 figs/mamt_comparison_fig.png

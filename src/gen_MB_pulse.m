@@ -1,7 +1,9 @@
 function [pulseMB, b1sqrd, pulse_per_band,TBP] = gen_MB_pulse(theta,tau,TR,b1rms_total,delta,nband,varargin)
 %%% function based on publication
+%%% [pulseMB, b1sqrd, pulse_per_band,TBP] = gen_MB_pulse(theta,tau,TR,b1rms_total,delta,nband,varargin)
 %%% Feb 2019
 %%% April 2009 - output the TBP as well
+%%% 
 %%
 gausswin_alpha = 3; %<-- shape of basic pulse
 dt = 6.4e-6;

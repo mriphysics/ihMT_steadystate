@@ -12,7 +12,7 @@ tissuepars.k = 0;
 %%% Set up sequence
 
 %%% generate some pulses
-flips = d2r(1:2:50);
+flips = deg2rad(1:2:50);
 nf = length(flips);
 tau = 2e-3;
 TR = 5e-3;
@@ -69,9 +69,9 @@ end
 %%
 figfp(21);
 subplot(1,2,1)
-plot(r2d(flips),abs(Mssfp),'linewidth',2)
+plot(rad2deg(flips),abs(Mssfp),'linewidth',2)
 hold on
-plot(r2d(flips),abs(freeman_hill(r2d(flips),TR,tissuepars.free.R1,...
+plot(rad2deg(flips),abs(freeman_hill(rad2deg(flips),TR,tissuepars.free.R1,...
     tissuepars.free.R2)),'--')
 
 legend('3-band','2-band','1-band','Freeman-Hill')
@@ -83,9 +83,9 @@ title('Predicted signals')
 % ylim([0 0.08]);
 
 subplot(1,2,2)
-plot(r2d(flips),abs(Mspgr),'linewidth',2)
+plot(rad2deg(flips),abs(Mspgr),'linewidth',2)
 hold on
-plot(r2d(flips),abs(ernst(r2d(flips),TR,tissuepars.free.R1)),'--')
+plot(rad2deg(flips),abs(ernst(rad2deg(flips),TR,tissuepars.free.R1)),'--')
 
 legend('3-band','2-band','1-band','Ernst')
 grid on

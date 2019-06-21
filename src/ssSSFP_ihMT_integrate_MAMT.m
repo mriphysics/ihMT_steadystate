@@ -1,6 +1,7 @@
-%%% [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi, tissuepars)
+%%% [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi,NTR, tissuepars)
 %
-%   Steady-state ihMT SPGR sequence with eigenvector based time integration method
+%   Steady-state ihMT SPGR sequence using time integration with MAMT
+%   (Portnoy and Stanisz MRM 2007) style approach
 %
 %   INPUTS:         
 %           b1pulse    = RF pulse, Mx3 array (M=#timepoints, 3=frequency
@@ -10,6 +11,7 @@
 %                        [-delta 0 delta]. Units Hz
 %           TR         = repetition time, sec
 %           dphi       = off-resonance phase per TR (rad)
+%           NTR        = number of TR periods to simulate
 %           tissuepars = structure containing all tissue parameters. See
 %                        init_tissue()
 %
@@ -17,10 +19,11 @@
 %           Mss        = Steady-state Mxy (after excitation pulse)
 %           Mz         = Longitudinal magnetization, including semisolid
 %                        terms
+%           Mt         = time resolved calculation from end of each TR
 %
 % (c) Shaihan Malik 2019. King's College London
 
-function [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi, tissuepars)
+function [Mss,Mz,Mt] = ssSSFP_ihMT_integrate_MAMT(b1pulse,dt,Delta_Hz,TR,dphi,NTR, tissuepars)
 
 %%% Unpack tissue parameters
 M0s = tissuepars.semi.M0;  %<--- TOTAL semisolid fraction
@@ -47,6 +50,12 @@ end
 % gamma for RF calculation
 gam = 267.5221; %< rad /s /uT
 
+if nargout==3 %<--- 3rd output is time trace
+    timeresolved=true;
+    Mt = zeros(6,NTR);
+else
+    timeresolved=false;
+end
 
 
 %% Lambda matrix and C are time invariant
@@ -83,62 +92,74 @@ end
 
 %% Now look at the RF matrices and integrate over pulse
 
+% Start at equilibrium
+M = [0 0 M0f (1-f)*M0s f*M0s 0].';
 
-% initialise this matrix
-Xtilde_rf = eye(7);
-
-for tt=1:nt
-    
-    % 24-5-2019: Apply full multiband pulse
-    b1x = real(b1_multiband(tt));
-    b1y = imag(b1_multiband(tt));
-    OmegaFree = gam*[0 0 -b1y;0 0 b1x;b1y -b1x 0];
-    
-    % now loop over the bands
-    OmegaSemi = zeros(3,3);
-
-    for ii=1:3
-        w1 = gam*abs(b1pulse(tt,ii));
-        w = pi*w1^2*G(ii);
-        D = 2*pi*Delta_Hz(ii)/w_loc;
-        OmegaSemi = OmegaSemi + [[-w 0 0];[0 -w w*D];[0 w*D -w*D^2]];
-    end
-    
-    Omega = blkdiag(OmegaFree,OmegaSemi);
-    
-    % Now make overall evolution matrix
-    Atilde = cat(1,[(Lambda+Omega) C],zeros(1,7));
-    
-    % apply matrix exponential and multiply into existing matrix
-    Xtilde_rf = expm(Atilde*dt)*Xtilde_rf;
-    
-end
-    
-
-%% Now compile these into a sequence prediction
+% initialise identity matrix
+I = eye(6);
 
 % phase alternation matrix
-Phi = diag([-1 -1 1 1 1 1 1]);
+Phi = diag([-1 -1 1 1 1 1]);
 
-% combine all. First apply evolution, then RF pulse, then phase
-% alternation. This is the steady state from the perspective of right at
-% the end of each RF pulse
-%X = Phi * Xtilde_rf * Xtilde_norf;
-
-% Switch reference time to the middle of the TR
-X = Phi * Xtilde_norf^0.5 *Xtilde_rf * Xtilde_norf^0.5;
-
-
-%%% Take eigenvector decomposition
-[v,d,w] = eig(X);
+% These can be defined outside the loop
+eL = expm(Lambda*(TR-tau)); %<--- could be defined outside loop
+eL_con = (eL-I)*inv(Lambda)*C;
         
-MssAll = v(:,end)/v(end,end); %<-- normalise to the last component since this should always be 1
+% Loop over TR periods
+for ix = 1:NTR
 
+    % Right at the start, apply phase alternation matrix
+    M = Phi*M;
+    
+    % Now loop over samples of RF Pulse
+    for tt=1:nt
+        
+        % 24-5-2019: Apply full multiband pulse
+        b1x = real(b1_multiband(tt));
+        b1y = imag(b1_multiband(tt));
+        OmegaFree = gam*[0 0 -b1y;0 0 b1x;b1y -b1x 0];
+        
+        % now loop over the bands
+        OmegaSemi = zeros(3,3);
+        
+        for ii=1:3
+            w1 = gam*abs(b1pulse(tt,ii));
+            w = pi*w1^2*G(ii);
+            D = 2*pi*Delta_Hz(ii)/w_loc;
+            OmegaSemi = OmegaSemi + [[-w 0 0];[0 -w w*D];[0 w*D -w*D^2]];
+        end
+        
+        Omega = blkdiag(OmegaFree,OmegaSemi);
+        
+        % Now make overall evolution matrix
+        A = Lambda+Omega;
+        
+        % apply forward solution as per MAMT paper
+        eA = expm(A*dt);
+        M = eA*M + (eA-I)*inv(A)*C;
+        
+    end %<-- end of RF pulse
+
+    if ix<NTR
+        % Now apply the rest of the TR - only Lambda applies here, not Omega
+        M = eL*M + eL_con;
+    else
+        % assume ix==NTR here, so it's the last run so just have half the
+        % TR period
+        eL = eL^0.5;
+        M = eL*M + (eL-I)*inv(Lambda)*C;
+    end
+    if timeresolved
+        Mt(:,ix)=M;
+    end
+end
+    
+        
 % Component to return, Mx+iMy
-S = [1 1i 0 0 0 0 0];
+S = [1 1i 0 0 0 0];
 
-Mss = S*MssAll;
-Mz = abs(MssAll(3:end-1)); % return Mz
+Mss = S*M;
+Mz = abs(M(3:end)); % return Mz
         
 
 end

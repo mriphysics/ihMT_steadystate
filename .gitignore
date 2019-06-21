@@ -1,4 +1,9 @@
 figs
+
 old
+
 *.png
+
 *.asv
+bin
+*~

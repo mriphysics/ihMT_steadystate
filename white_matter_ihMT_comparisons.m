@@ -1,7 +1,8 @@
 %% 19-4-2019: This script performs simulations of bSSFP and SPGR for white matter
 % Shaihan Malik, King's College London, 2019
+% EDITS: 16-6-2019
 
-%% Generates figures 3 and 7 from the paper
+%% Generates figures 4 and 8 from the paper
 
 tissuepars = init_tissue('ic');
 
@@ -9,7 +10,7 @@ tissuepars = init_tissue('ic');
 %%% Set up sequence
 
 %%% generate some pulses
-flips = d2r([1:2:30 35:5:80]);
+flips = deg2rad([1:2:30 35:5:80]);
 nf = length(flips);
 tau = 2e-3;
 TR = 5e-3;
@@ -68,35 +69,38 @@ for IX = 1:2
     
 end
 
-%% Figure 3 from paper
+%% Figure 4 from paper 
 
 figfp(1)
 nr=2;nc=2;
 
 for jj=1:2
     
-    subplot(nr,nc,1+(jj-1)*2)
-    plot(r2d(flips),abs(Mssfp(:,:,jj)),'linewidth',1.5);
+    subplot(nr,nc,1+(jj-1)*nc)
+    plot(rad2deg(flips),abs(Mssfp(:,:,jj)),'linewidth',1.5);
     grid on
     xlabel('Flip angle, deg')
     ylabel('Signal / M_0')
     pl = get(gca,'Children');
     pl(3).Color = [0 0 0];
-    pl(1).LineStyle = ':';
-    pl(1).Color = [0.2 0.4 1];
+    pl(1).LineStyle = '--';
+    pl(1).Color = [0 0 1];
+    pl(2).Color = [0 1 0];
+    
     hold on
 
     
-    subplot(nr,nc,2+(jj-1)*2)
-    plot(r2d(flips),abs(Mspgr(:,:,jj)),'linewidth',1.5)
+    subplot(nr,nc,2+(jj-1)*nc)
+    plot(rad2deg(flips),abs(Mspgr(:,:,jj)),'linewidth',1.5)
     grid on
     xlabel('Flip angle, deg')
     ylabel('Signal / M_0')
     
     pl = get(gca,'Children');
     pl(3).Color = [0 0 0];
-    pl(1).LineStyle = ':';
-    pl(1).Color = [0.2 0.4 1];
+    pl(1).LineStyle = '--';
+    pl(1).Color = [0 0 1];
+    pl(2).Color = [0 1 0];
     hold on
     
 end
@@ -111,61 +115,101 @@ gg = get(gcf,'children');
 %%% For first plot fill in classic MT difference
 axes(gg(5))
 inBetween = [abs(Mssfp(:,1,1)); flip(abs(Mssfp(:,2,1)),1)];
-x2 = [r2d(flips) flip(r2d(flips),2)];
+x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
 fh=fill(x2, inBetween, 'b');
 fh.EdgeColor = 'none';
 fh.FaceAlpha=0.1;
 
 axes(gg(4))
 inBetween = [abs(Mspgr(:,1,1)); flip(abs(Mspgr(:,2,1)),1)];
-x2 = [r2d(flips) flip(r2d(flips),2)];
+x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
 fh=fill(x2, inBetween, 'b');
 fh.EdgeColor = 'none';
 fh.FaceAlpha=0.1;
 
 axes(gg(3))
 inBetween = [abs(Mssfp(:,2,2)); flip(abs(Mssfp(:,3,2)),1)];
-x2 = [r2d(flips) flip(r2d(flips),2)];
-fh=fill(x2, inBetween, 'r');
+x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
+fh=fill(x2, inBetween, 'g');
 fh.EdgeColor = 'none';
 fh.FaceAlpha=0.1;
 
 axes(gg(2))
 inBetween = [abs(Mspgr(:,2,2)); flip(abs(Mspgr(:,3,2)),1)];
-x2 = [r2d(flips) flip(r2d(flips),2)];
-fh=fill(x2, inBetween, 'r');
+x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
+fh=fill(x2, inBetween, 'g');
 fh.EdgeColor = 'none';
 fh.FaceAlpha=0.1;
 
 %%% text labels
 axes(gg(5))
 title('bSSFP','fontsize',16,'fontweight','bold')
-text(-25,0.06,'f = 0','fontsize',18,'fontweight','bold','rotation',90,'fontangle','italic')
+text(-25,0.06,'\delta = 0','fontsize',18,'fontweight','bold','rotation',90,'fontangle','italic')
 
 axes(gg(4))
 title('SPGR','fontsize',16,'fontweight','bold')
 
 axes(gg(3))
-text(-25,0.06,'f = 1','fontsize',18,'fontweight','bold','rotation',90,'fontangle','italic')
+text(-25,0.06,'\delta = 1','fontsize',18,'fontweight','bold','rotation',90,'fontangle','italic')
 
 %%% annotation
 a1 = annotation('textarrow',[0.2786 0.2214],[0.6878 0.7715],'String','\DeltaMT','fontsize',13);
-a2 = annotation('textarrow',[0.3014 0.2442],[0.2172 0.3009],'String','\DeltaihMT','fontsize',13);
+a2 = annotation('textarrow',[0.3181 0.2609],[0.2121 0.2958],'String','\DeltaihMT','fontsize',13);
 a1.HeadStyle = 'cback1';
 a2.HeadStyle = 'cback1';
 a1.HeadWidth = 6;
 a2.HeadWidth = 6;
 %
+
+
 setpospap([100 100 777 590])
 print -dpng -r300 figs/simplefigure.png
 
+%% Add supporting information figure on ihMTR and B1rms
+figfp(2)
+
+subplot(3,1,1)
+plot(rad2deg(flips),100*(abs(Mspgr(:,2,2))-abs(Mspgr(:,3,2))),'linewidth',1.5)
+grid on
+hold on
+plot(rad2deg(flips),100*(abs(Mssfp(:,2,2))-abs(Mssfp(:,3,2))),'linewidth',1.5)
+
+xlabel('Flip angle, deg')
+ylabel('\DeltaihMT (percent of M_0)')
+title('\DeltaihMT','fontsize',14,'fontweight','bold')
+ll=legend('SPGR','bSSFP');ll.FontSize=12;
+
+subplot(3,1,2)
+plot(rad2deg(flips),(abs(Mspgr(:,2,2))-abs(Mspgr(:,3,2)))./abs(Mspgr(:,1,2)),'linewidth',1.5)
+grid on
+hold on
+plot(rad2deg(flips),(abs(Mssfp(:,2,2))-abs(Mssfp(:,3,2)))./abs(Mssfp(:,1,2)),'linewidth',1.5)
+
+xlabel('Flip angle, deg')
+ylabel('ihMTR (ratio)')
+title('ihMTR','fontsize',14,'fontweight','bold')
+ll=legend('SPGR','bSSFP');ll.FontSize=12;
+
+
+
+subplot(3,1,3)
+b1offres=[];for ii=1:nf,b1offres(ii)=sqrt(b1sqrd{ii,2}(3)*tau/TR);end
+plot(rad2deg(flips),b1offres,'linewidth',1.5)
+grid on
+xlabel('Flip angle, deg')
+ylabel('$\sqrt<B_1^2(\Delta\neq 0)>,\mu T$','interpreter','Latex')
+title('Off-resonance B_1^{rms}','fontsize',14,'fontweight','bold')
+ylim([0 5]);
+
+setpospap([00 00 400 700])
+print -dpng -r300 figs/simplefigure_supportinginfo.png
 
 %% Comparison for different frequency offsets and RMS B1, SSFP only
 
 %%% Set up sequence
 
 %%% generate some pulses
-flipangle = d2r(30);
+flipangle = deg2rad(30);
 
 n=32;
 b1rms = linspace(2,8,n);
@@ -226,7 +270,7 @@ title ('ihMT ratio vs pulse parameters')
 %%% Set up sequence
 
 %%% generate some pulses
-flipangle = d2r(linspace(10,80,n));
+flipangle = deg2rad(linspace(10,80,n));
 
 n=32;
 b1rmsfix = 5;
@@ -272,7 +316,7 @@ end
 
 %%
 figfp(2)
-imagesc(deltaf*1e-3,r2d(flipangle),abs(ssfp_fa_delta(:,:,2)-ssfp_fa_delta(:,:,3))./abs(ssfp_fa_delta(:,:,1)))
+imagesc(deltaf*1e-3,rad2deg(flipangle),abs(ssfp_fa_delta(:,:,2)-ssfp_fa_delta(:,:,3))./abs(ssfp_fa_delta(:,:,1)))
 xlabel('\Delta/2\pi, kHz')
 ylabel('FA, deg')
 colorbar
@@ -285,16 +329,17 @@ tr = linspace(2e-3,10e-3,n);
 b1max=zeros(n,n);
 for jj=1:n
     for ii=1:n
-        tmp=gen_MB_pulse(d2r(30),tau,tr(jj),b1rms(ii),8e3,'3','alpha',gauss_alpha,'dt',dt);
+        tmp=gen_MB_pulse(deg2rad(30),tau,tr(jj),b1rms(ii),8e3,'3','alpha',gauss_alpha,'dt',dt);
         b1max(ii,jj) = max(abs(tmp));
     end
 end
 
 
 
-%% Figure 7
+%% Figure 8
 
 nr=2;nc=3;
+fs=13;
 figfp(2)
 subplot(nr,nc,2)
 imagesc(deltaf*1e-3,b1rms,100*abs(ssfp_b1_delta(:,:,2)-ssfp_b1_delta(:,:,3)));
@@ -302,8 +347,8 @@ grid on
 xlabel('\Delta/2\pi, kHz')
 ylabel('B_1^{rms}, \muT')
 colorbar
-title ('\DeltaihMT / M_0')
-text(17,8.5,'percent','fontweight','bold','fontsize',12,'rotation',0)
+title ('\DeltaihMT','fontsize',fs)
+text(21.5,4,'% of M_0','fontweight','bold','fontsize',12,'rotation',90)
 axis xy
 
 subplot(nr,nc,1)
@@ -312,8 +357,8 @@ grid on
 xlabel('\Delta/2\pi, kHz')
 ylabel('FA, deg')
 colorbar
-title ('\DeltaihMT')
-text(17,85,'percent','fontweight','bold','fontsize',12,'rotation',0)
+title ('\DeltaihMT','fontsize',fs)
+text(21.5,35,'% of M_0','fontweight','bold','fontsize',12,'rotation',90)
 axis xy
 
 subplot(nr,nc,5)
@@ -323,8 +368,8 @@ xlabel('\Delta/2\pi, kHz')
 ylabel('B_1^{rms}, \muT')
 colorbar
 %set(gca,'fontsize',12)
-title ('ihMTR')
-text(17,8.5,'percent','fontweight','bold','fontsize',12,'rotation',0)
+title ('ihMTR','fontsize',fs)
+text(21.5,4,'% of S_{1B}','fontweight','bold','fontsize',12,'rotation',90)
 axis xy
 
 subplot(nr,nc,4)
@@ -336,8 +381,8 @@ xlabel('\Delta/2\pi, kHz')
 ylabel('FA, deg')
 colorbar
 %set(gca,'fontsize',12)
-title ('ihMTR')
-text(17,85,'percent','fontweight','bold','fontsize',12,'rotation',0)
+title ('ihMTR','fontsize',fs)
+text(21.5,35,'% of S_{1B}','fontweight','bold','fontsize',12,'rotation',90)
 axis xy
 
 % B1 max
@@ -352,7 +397,7 @@ xlabel('TR, ms')
 ylabel('B_1^{rms}, uT')
 colorbar
 % set(gca,'fontsize',12)
-title ('Max B_1 (\muT)')
+title ('Max B_1 (\muT)','fontsize',fs)
 text(13,5.5,'\muT','fontweight','bold','fontsize',12,'rotation',0)
 
 % add patch
