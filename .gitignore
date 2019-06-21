@@ -3,7 +3,6 @@ figs
 old
 
 *.png
-
 *.asv
-bin
+*.mat
 *~

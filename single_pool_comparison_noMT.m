@@ -1,6 +1,6 @@
-%% Feb 2019
 % Script to verify that the SS equations give the expected free pool
-% formulae when no MT is present
+% formulae when no MT is present. These results are not included in the
+% publication
 
 tissuepars = init_tissue();
 

@@ -1,5 +1,5 @@
-%% 19-4-2019: This script tests the instantaneous pulse approximation against time
-%% integration of the BMP equations directly
+% Script to test the instantaneous pulse approximation against time
+% integration of the BMP equations directly
 % Shaihan Malik, King's College London, 2019
 
 tissuepars = init_tissue('ic');
@@ -348,7 +348,8 @@ cc.Position = [0.9338 0.4850 0.0152 0.2500];
 print -dpng -r300 figs/instantaneous_approx_fig.png
 
 
-%% Additional material - make a comparison with MAMT style integration
+%% Additional material - make a comparison with MAMT style integration where we
+% integrate over multiple TRs to reach steady state
 
 % arbitrarily choose pulse
 II=13;
@@ -372,7 +373,7 @@ for ii=1:n
 end
 save bin/mamt_comparison mamt NTR tt1 tt2 aa
 
-%%
+%
 figfp(1);
 
 

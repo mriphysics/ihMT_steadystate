@@ -1,10 +1,6 @@
-%% 19-4-2019: This script makes Figure 2 from the paper
+%% 19-4-2019: This script makes Figure 3 from the paper
 % Shaihan Malik, King's College London, 2019
 
-%%
-addpath(genpath('../../working/ihMT'))
-addpath(genpath('src'))
-%%
 
 theta = deg2rad(35);
 dur = 2e-3;
