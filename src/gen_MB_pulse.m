@@ -103,7 +103,7 @@ pulseMB = pulseSB(:) .* wt(:);
 b1_max_pulse = max(abs(pulseMB));
 
 
-fprintf(1,'Flip = %1.1f, B1 max = %1.3f uT, B1 rms = %1.3f uT\n',r2d(gam*dt*abs(sum(pulseMB))),b1_max_pulse,sqrt(sum(abs(pulseMB).^2)*dt/TR))
+fprintf(1,'Flip = %1.1f, B1 max = %1.3f uT, B1 rms = %1.3f uT\n',rad2deg(gam*dt*abs(sum(pulseMB))),b1_max_pulse,sqrt(sum(abs(pulseMB).^2)*dt/TR))
 
 %%% Work out power in each band - not too hard
 switch nband

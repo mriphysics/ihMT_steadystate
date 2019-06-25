@@ -1,10 +1,10 @@
 %%% Script to re-generate all fitting of the experimental phantom data. The
 %%% phantom consisted of water, BSA, PL-161, and hair conditioner.
-addpath(genpath(pwd))
+
 
 %% Define SSFP pulse sequence
 seq_pars = struct;
-seq_pars.flips = d2r(10:10:80);
+seq_pars.flips = deg2rad(10:10:80);
 nf = length(seq_pars.flips);
 seq_pars.tau = 2.2e-3;
 seq_pars.TR = 5e-3;
@@ -27,7 +27,7 @@ seq_pars.dphi=0;
 
 %% Define SPGR pulse sequence
 seq_pars_spgr = seq_pars;
-seq_pars_spgr.flips = d2r(2:2:16);
+seq_pars_spgr.flips = deg2rad(2:2:16);
 nf = length(seq_pars_spgr.flips);
 
 seq_pars_spgr.b1sqrd = {};
@@ -206,7 +206,7 @@ gg(1).Position = [0.49 0.11 0.32 0.34];
 gg(3).Position = [0.8296    0.4095    0.1559    0.2314];
 
 
-print -dpng -r300 figs/ihMT_phantom_plots.png
+% print -dpng -r300 figs/ihMT_phantom_plots.png
 
 %% Add a plot of the ihMT ratio and ihMT difference for measured and simulated data based on 
 % fitted parameters
@@ -252,7 +252,7 @@ for jj=1:4
 end
 setpospap([100 100 850 550])
 
-print -dpng -r300 figs/ihMT_phantom_MTRihMTRplots.png
+% print -dpng -r300 figs/ihMT_phantom_MTRihMTRplots.png
 
 
 

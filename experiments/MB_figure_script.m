@@ -122,4 +122,4 @@ gg(2).Position = [0.68 0.1 0.25 0.21];
 gg(5).Position = gg(2).Position + [0 0.32 0 0];
 gg(8).Position = gg(2).Position + [0 0.64 0 0];
 setpospap([400 200 650 600])
-print('-dpng','-r300','figs/mb_fig.png')
+% print('-dpng','-r300','figs/mb_fig.png')

@@ -67,8 +67,8 @@ if interptheta
    
     magic_angle = acos(1/sqrt(3));
 
-    po = find(abs(th-magic_angle)<d2r(3)); % points to interpolate
-    pu = find((abs(th-magic_angle)>d2r(3))&(abs(th-magic_angle)<d2r(10))); % points to use
+    po = find(abs(th-magic_angle)<deg2rad(3)); % points to interpolate
+    pu = find((abs(th-magic_angle)>deg2rad(3))&(abs(th-magic_angle)<deg2rad(10))); % points to use
    
    %%% loop over frequencies
    for ii=1:length(ff)

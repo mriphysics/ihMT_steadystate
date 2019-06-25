@@ -204,4 +204,36 @@ The flip angle and b1rms therefore do not need to be defined.
     
 ## Experiments
 
-The scripts in the folder `experiments` may be used to replicate certain experiments.
+The scripts in the folder `experiments` may be used to replicate certain experiments. Make sure the `lib` and `src` subfolders are on the path
+before executing these.
+
+#### Compare ihMT effect for different sequences in white matter
+Uses `white_matter_ihMT_comparisons.m`. This script performs the following tests:
+-   Simulate expected signal curves for 1B, 2B and 3B pulses in WM for case where f=0 and f=1, for SPGR and bSSFP
+-   Display ihMTR and MTR for the same sequences
+-   Explore &Delta;ihMT and ihMTR for bSSFP with variable &Delta;, b1rms, &theta;
+-   Investigate limits for pulse design using `gen_MB_pulse` within hardware and safety constraints
+    
+    
+#### Investigate instantaneous pulse approximation
+Uses `instantaneous_pulse_approx_script.m`. This script compares simulations using the instantaneous approximation (i.e. `ssSSFP_ihMT` 
+and `ssSPGR_ihMT`) with temporal integration including the shaped RF waveforms (i.e. `ssSSFP_ihMT_integrate` and `ssSPGR_ihMT_integrate` respectively). 
+Comparisons are made for different dipolar relaxation times (R1D) and pulse durations, and it is shown that the [Bieri Scheffler correction]((https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.22116))
+is enough to correct the instantaneous approximation results in most cases. The script also compares the eigenvector based method for finding the steady-state 
+used in `ssSSFP_ihMT_integrate` and `ssSPGR_ihMT_integrate` with time-integration over multiple TR periods to reach the steady-state.
+    
+    
+#### Experimental data fitting
+Experiments were performed using SPGR and bSSFP with a range of flip angles on a sample consisting of:
+-   Water doped win MnCl2, not expected to have MT or ihMT effect
+-   Bovine Serum Albumin, expected to have MT but not ihMT contrast
+-   Prolipid 161, used as a test substance for ihMT effects by [Swanson et al](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.26210)
+-   Hair conditioner, also shown to have ihMT effect (e.g. by [Varma et al](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.25174))
+    
+Phantom data are available to download from the release page, please place the matrix `fitdata.mat` into the `bin` folder. This script will performed constrained fitting to this 
+data using the above listed signal functions and perform error analysis using residual bootstrapping.
+    
+    
+#### Other scripts
+- `MB_figure_script.m` generates the figure with the example RF waveforms used above
+- `single_pool_comparison_noMT.m` compares the signal functions with Ernst and Freeman-Hill equations for the case of no semisolid compartment

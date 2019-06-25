@@ -219,7 +219,6 @@ end
 
 
 
-
 %% Make a big figure
 
 figfp(100)
@@ -345,7 +344,7 @@ axes(gg(1))
 cc = colorbar;
 cc.Position = [0.9338 0.4850 0.0152 0.2500];
 
-print -dpng -r300 figs/instantaneous_approx_fig.png
+% print -dpng -r300 figs/instantaneous_approx_fig.png
 
 
 %% Additional material - make a comparison with MAMT style integration where we
@@ -394,4 +393,4 @@ xlim([0 550])
 ylim([0 550])
 
 
-print -dpng -r300 figs/mamt_comparison_fig.png
+% print -dpng -r300 figs/mamt_comparison_fig.png
