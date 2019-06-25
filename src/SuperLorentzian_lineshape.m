@@ -1,9 +1,9 @@
 % Function to compute Super Lorentzian lineshape and associated local field
 % strength, w_loc.
 % 
-% [G,w_loc] = SuperLorentzian_lineshape(T2b,fsample,varargin)
+% [G,w_loc] = SuperLorentzian_lineshape(T2s,fsample,varargin)
 % 
-% INPUTS:       T2b = T2 of semisolid compartment, seconds
+% INPUTS:       T2s = T2 of semisolid compartment, seconds
 %               fsample   = frequencis at which function is to be evaluated (can
 %               be vector)
 %               optional: 'interpzero' - interpolate between ±1.5kHz as per
@@ -12,10 +12,10 @@
 % OUTPUTS:      G   = lineshape value, s
 %               w_loc = local field term (rad/s)
 %               
-%               optional:
+%               
 % Shaihan Malik (c), King's College London, April 2019
 
-function [G,w_loc] = SuperLorentzian_lineshape(T2b,fsample,varargin)
+function [G,w_loc] = SuperLorentzian_lineshape(T2s,fsample,varargin)
 
 %%% A suggested by Gloor, we can interpolate the lineshape across from
 %%% ±1kHz
@@ -59,8 +59,8 @@ dth = th(2)-th(1);
 
 [thg,ffg]=meshgrid(th,ff);
 
-g = sin(thg).*sqrt(2/pi).*T2b./(abs(3*cos(thg).^2-1));
-g = g .* exp(-2*(2*pi*ffg*T2b./abs(3*cos(thg).^2-1)).^2);
+g = sin(thg).*sqrt(2/pi).*T2s./(abs(3*cos(thg).^2-1));
+g = g .* exp(-2*(2*pi*ffg*T2s./abs(3*cos(thg).^2-1)).^2);
 
 %% at this point try to interpolate over the angles not the line value
 if interptheta
@@ -92,7 +92,7 @@ if interpzero
     G = interp1(ff,G,fsample);
 end
 
-w_loc = 1/(sqrt(15)*T2b);
+w_loc = 1/(sqrt(15)*T2s);
 
 
 end

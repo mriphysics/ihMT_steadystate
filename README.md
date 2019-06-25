@@ -4,143 +4,204 @@ when employing multi-band pulses in tissues with [inhomogeneous MT effects](http
 and builds on prior work using non-selective multi-band RF pulses for [controlling saturation of MT effects](https://onlinelibrary.wiley.com/doi/10.1002/mrm.27442).
 
 A paper describing the theory and experiments implemented in this repo is currently under
-review and links will be posted as soon as it is published.
+review and links will be posted as soon as it is published. A related abstract was presented at [ISMRM 2019 (#427)](https://cds.ismrm.org/protected/19MPresentations/abstracts/0427.html)
 
-**This code is distributed under the GNU General Public License v3. Please cite our work appropriately if you use it and link any extensions back to this repo**
+**This code is distributed under the GNU General Public License v3 (see the included LICENSE.txt). Please cite our work appropriately if you use it and link any extensions back to this repo**
 
 Shaihan Malik, King's College London, June 2019.
 [@shaihanmalik](https://twitter.com/shaihanmalik)
 
+## Biophysical model
 
-## Example calculations
+The code implements the model described by the following diagram:
 
-The code is organised into a series of scripts at the top level that implement individual experiments from the paper, and then more basic functions that can be used for simulating ihMT and MT effects in steady-state MR sequences, with particular focus on multi-band RF excitation pulses, more generally.
+<img src="figs/model_diag.jpg" alt="Model" width="80%" align="center">
 
-The top level scripts are:
+Tissue consists of a main compartment of free water, and two semisolid compartments s1 and s2
+that are both in contact with the free water pool but not each other. Compartment s1 consists
+only of Zeeman ordered magnetization, while s2 contains both Zeeman and Dipolar ordered terms. The 
+relative fractions of these are _f_ and _(1-f)_ respectively. 
 
-* **Test 1** ( `test1_steady_state_GRE.m`)
-
-  Compares the steady-state found by EPG-X calculation with direct steady-state calculations for which solutions exist. Examples are given for SPGR and bSSFP sequences for water exchange and  MT models.
-  - The transient phase of SPGR is considered and compared with isochromat simulations (code included)
-  - SPGR signal vs RF spoiling phase increment also included
-  - bSSFP including model with frequency offset for second compartment
-
-
-* **Test 2** (`test2_multicomponent_CPMG.m`)
-
-    Simulates multiecho CPMG sequence for two compartment system coupled by intracompartmental exchange (follows Bloch-McConnell equations). This type of measurement is used for multicomponent T2 estimation - the simulation explores how exchange can influence the estimated parameters and also considers influence of frequency offset for second compartment
-
-
-* **Test 3** (`test3a_transient_GRE.m` and `test3b_experimental_data.m`)
-
-   3a: Simulates balanced SSFP and SPGR sequences with variable flip angles following an inversion pulse, for a system with MT effects. This type of sequence has been proposed for use in Magnetic Resonance Fingerprinting (MRF) - the experiment explores the possible influence of MT on this method.
-
-   3b: Experimental (phantom) data using SPGR style sequence are fitted with the EPG-X model to determine MT parameters. Data are included in /bin
-
-* **Test 4** ( `test4_multislice_TSE.m`)
-
-  Compares single slice and multi-slice TSE for a system with MT effects. In the multi-slice case the excitation of other slices creates off-resonant saturation of the bound pool magnetization in the local slice, leading to signal attenuation when compared with the single slice case.
-
-  Predictions are matched to an in-vivo experiment: experimental data are included in /bin
-
-* **Additional example** ( `Additional_bSSFPX_CEST.m`)
-
-  *Not included in the paper.* [Zhang et al, 2017](https://www.ncbi.nlm.nih.gov/pubmed/28012297/) proposed using the bSSFP off-resonance profile to detect CEST effects, using a method called bSSFPX. This script reproduces Figure 4 from Zhang et al using values taken from the paper. This shows that the EPG-X method could also be used for further modeling of CEST contrast arising over sequences
-
-## Detailed description of implementations
-
-The main source code is contained in subfolder `src`. The code efficiently implements EPG and EPG-X using Matlab sparse matrices; this has been found to be very efficient. The current state is stored in a vector arranged as follows:
-
-* EPG:      `[F0 F0* Z0 F1 F-1* Z1 F2 F-2* Z2 ... ]^T`
-
-* EPG-X(MT) *pulsed MT version*
-
-  `[F0A F0A* Z0A Z0B F1A F-1A* Z1A Z1B F2A F-2A* Z2A Z2B ... ]^T`
-
-    i.e. There are Z states for both compartments but F states only for compartment A (4 states per 'order')
-
-* EPG-X(BM) *Full Bloch-McConnell version*
-
-  `[F0A F0A* Z0A F0B F0B* Z0B F1A F-1A* Z1A F1B F-1B* Z1B F2A F-2A* Z2A F2B F-2B* Z2B ... ]^T`
-
-  there are six states per EPG order
-
-For two compartment simulations compartment A is taken to be the larger one (for MT this is the free pool). There are six major simulation functions:
-
-* `EPG_GRE.m`
-
-  Classic EPG simulation code for gradient echo sequences. Arguments:
-  - `theta` - series of flip angles (rad)
-  - `phi` - series of RF pulse phases (rad)
-  - `TR` - repetition time (ms)
-  - `T1` - T1 (ms)
-  - `T2` - T2 (ms)
-  Different flavours of sequence can be defined by setting `phi`: alternating 0,180 gives bSSFP; quadratic progression for SPGR. Function `RF_phase_cycle.m` can be used to set this.
+Tissue properties are contained within a struct `tissuepars` which is constructed as follows:
+	
+	
+	tissuepars.
+				free.
+					R1 <----- Free pool longitudinal relaxation rate R1 (s^-1)
+					R2 <----- Free pool transverse relaxation rate R2 (s^-1)
+				semi.
+					M0 <----- Semisolid fraction of M0 (i.e. M0s in paper)
+					R1 <----- Semisolid Zeeman longitudinal relaxation rate (R1Z, s^-1)
+					R1D<----- Semisolid Dipolar longitudinal relaxation rate (R1D, s^-1)
+					T2 <----- Semisolid Transverse relaxation TIME (s)
+					f  <----- fraction of semisolid pool in compartment s2
+				k	   <----- exchange rate between free and semisolid pools (directionless; s^-1)
+				lineshape <-- Flag that decides lineshape model, either 'SL' (Super Lorentzian) or 'Gaussian'
 
 
-* `EPGX_GRE_MT.m`
+_&dagger; The symbol 'f' will be replaced by '&delta;' in a future revision_
 
-  EPG-X(MT) GRE simulation. Same syntax as `EPG_GRE.m` with additional arguments:
-  - `B1SqrdTau`: the integrated square amplitude of each RF pulse, units uT^2 ms
-  - `f`: *smaller* pool fraction (for MT this is the bound pool)
-  - `ka`: Exchange rate from compartment A to B. Units s^-1
-  - `G`: Absorption line value at the frequency of interest; this does not necessarily have to be zero, it depends on the pulse being simulated. Units us (microseconds)
+Tissues can be initialised by calling function `init_tissue`:
 
-  In addition the T1 argument now takes two values (compt. A and B)
+* `init_tissue.m`
+
+  Takes a string argument, current options:
+  - 'ic' (internal capsule model from Mchinda et al 2017)
+  - 'pl161' prolipid 161, using data from paper
+  - 'simple' simplified rounded parameter values, similar to human brain
+
+The `tissuepars` struct contains a flag for the lineshape. The lineshapes are implemented by two separate functions 
+`SuperLorentzian_lineshape` or `gauss_lineshape`. 
+  
+  
+* `SuperLorentzian_lineshape.m`
+    
+    
+        [G,w_loc] = SuperLorentzian_lineshape(T2s,fsample,varargin)
+        
+        INPUTS:     T2s = T2 of semisolid compartment, seconds
+                    fsample   = frequencies at which function is to be evaluated (can
+                    be vector)
+                    optional: 'interpzero' - interpolate between ±1.5kHz as per
+                    Gloor et al 2008, to remove high peak at f=0.
+        
+        OUTPUTS:    G   = lineshape value, s
+                    w_loc = local field term (rad/s)
+
+The 'interpzero' flag is used to interpolate across the zero frequency term which has a singularity. This approach 
+was proposed by [Bieri and Scheffler](https://doi.org/10.1002/mrm.21056) and also used by [Gloor et al 2008](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.21705)
+
+* `gauss_lineshape.m`
+    
+    
+         [g,w_loc] = gauss_lineshape(T2s,f)
+         
+         INPUTS:       T2s = T2 of semisolid compartment, seconds
+                       f   = frequency at which function is to be evaluated (can
+                       be vector)
+         OUTPUTS:      g   = lineshape value, s
+                       w_loc = local field term (rad/s)
+                       
 
 
-* `EPGX_GRE_BM.m`
+    
+## RF pulses
 
-    EPG-X(BM) GRE simulation. As above, but both T1 and T2 have two components, and the RF power and absorption line value are not needed. An optional `delta` argument can be used to specify a frequency offset for the second compartment. This could be used for simulation of myelin water (explored in the paper) or even CEST with larger offsets. Note that the effect of off-resonance on the RF flip angle is not considered (yet).
+The work that this code relates to uses multiband RF pulses for simultaneous saturation and excitation. 
+These pulses may be designed to have equal RF power that is distributed differently (as needed) over one, two, or 
+three different frequency bands with offset frequencies &Delta;.
 
-    Signal returned is the sum of both compartments
+<img src="figs/mb_fig.png" align="center" alt="Model" width="60%">
 
-* `EPG_TSE.m`
+The illustration shows three different pulses all with the same total power. These can be 
+generated using `gen_MB_pulse.m`:
 
-    Classic EPG simulation code for TSE sequences. Arguments:
-    - `theta` - series of flip angles (rad); can be complex if phase modulation also needed
-    - `ESP` - echo spacing time (ms)
-    - `T1` - T1 (ms)
-    - `T2` - T2 (ms)
+* `gen_MB_pulse.m`
+
+  This function will generate multiband pulses which produce a required on-resonance flip angle
+  (&theta;) for a specified pulse duration &tau; and TR that has a given specific total RMS B1.
+  As in the diagram above, these could either have 2 or 3 bands (single or dual off-resonance frequency). 
+  The 2-band pulses can have either a positive or negative offset; the names of the pulses are therefore
+  2+B, 2-B, 3B.
+  
+  
+   
+      [pulseMB, b1sqrd, pulse_per_band,TBP] = gen_MB_pulse(theta,tau,TR,b1rms_total,delta,nband,varargin)
+      
+      arguments:
+      -  theta:         on-resonance flip angle (rad)
+      -  tau:           pulse duration (s)
+      -  TR:            repetition time (s)
+      -  b1rms_total:   overall RMS B1 of the whole sequence (uT)
+      -  delta:         offset frequency for off-resonant bands (Hz) 
+      -  nband:         string argument for number of bands. Options are '2+', '2-', or '3'.
+      
+      optional arguments:
+      -  alpha:         scalar value determining width of Gaussian envelope for pulse (default is 3)
+      -  dt:            RF sampling duration. Default 6.4us
 
 
+## Simulation code
 
-* `EPGX_TSE_MT.m`
+The main simulation functions are contained within the `src` folder. Details of the implementations are given in 
+an upcoming paper, link to be added when available. Most functions assume that there are 3 frequency bands that need to be considered
+though some may have zero contribution. This could be readily extended if necessary.
 
-    EPG-X(MT) TSE simulation. Same syntax as `EPG_TSE.m` with additional `B1SqrdTau`, `f`, `ka` & `G` as defined above
+*   `ssSSFP_ihMT.m` - Direct simulation of *steady state* for balanced SSFP sequence under **instantaneous RF pulse approximation** (i.e. 
+    relaxation and exchange are neglected during RF pulses, pulses are applied instantaneously).
+    
+    
+        function [Mss,Mz] = ssSSFP_ihMT(flipangle,b1sqrd,Delta_Hz,TR,tau,dphi, tissuepars,varargin)
+    
+        Steady-state ihMT bSSFP sequence. For non-selective multiband sequences
+    
+        INPUTS:         
+           flipangle  = flip angle on resonance (rad)
+           b1sqrd     = mean square B1+ per frequency band of
+                        multiband pulse (over the duration of the pulse). 
+                        1x3 vector (so far we assume 3 bands maximum but 
+                        this could be changed). Units uT^2
+           Delta_Hz   = 1x3 vector of frequencies of each band. Typically 
+                        [-delta 0 delta]. Units Hz
+           TR         = repetition time, sec
+           tau        = pulse duration, sec
+           dphi       = Off-resonance phase gained per TR, unit=radians
+           tissuepars = structure containing all tissue parameters. See
+                        init_tissue()
+        OUTPUTS:
+           Mss        = Steady-state Mxy (after excitation pulse)
+           Mz         = Longitudinal magnetization, including semisolid
+                        terms
+
+This code will directly compute the steady-state for bSSFP. The argument b1sqrd is the mean square B1 
+in each frequency band over the pulse duration (not TR). This is output by the `gen_MB_pulse` function. 
+The tissue properties are passed to this function using the struct that is initialised by `init_tissue`. The 
+absorption line is computed within this function, using the flag `tissuepars.lineshape` to decide which function to use. 
+If the Super-Lorentzian is used then the `interpzero` option is also used here.
+    
+    
+-   `ssSPGR_ihMT.m` - Identical functionality to `ssSSFP_ihMT.m` except for SPGR sequence, the only difference is that the argument `dphi` is not
+    needed. Perfect spoiling of transverse components is assumed.
+    
+    
+-   `ssSSFP_ihMT_integrate.m` - Integration method for direct computation of steady-state for bSSFP without assuming instantaneous pulses. 
+    Uses eigenvector based method for steady-state computation (see paper when available).
+    
+    
+            function [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi, tissuepars)
+
+           Steady-state ihMT bSSFP sequence with eigenvector based time integration method
+
+        INPUTS:         
+            b1pulse    = RF pulse, Mx3 array (M=#timepoints, 3=frequency
+                         bands). Units are uT
+            dt         = dwell time, sec
+            Delta_Hz   = 1x3 vector of frequencies of each band. Typically 
+                         [-delta 0 delta]. Units Hz
+            TR         = repetition time, sec
+            dphi       = off-resonance phase per TR (rad)
+            tissuepars = structure containing all tissue parameters. See
+                        init_tissue()
+    
+        OUTPUTS:
+            Mss        = Steady-state Mxy (after excitation pulse)
+            Mz         = Longitudinal magnetization, including semisolid
+                                terms
+
+Note that unlike `ssSSFP_ihMT.m` this function takes the sampled RF waveform, decomposed into separate frequency bands in the time domain. 
+The flip angle and b1rms therefore do not need to be defined.
 
 
-* `EPGX_TSE_BM.m`
+-   `ssSPGR_ihMT_integrate.m` - Identical functionality to `ssSSFP_ihMT_integrate.m` except for SPGR sequence, the only difference is that the argument `dphi` is not
+    needed. Perfect spoiling of transverse components is assumed.
+    
+    
+-   `Bieri_Scheffler_finite_correction.m` - implements finite RF pulse duration correction to R2 of the free water pool for bSSFP 
+    as outlined [in this paper](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.22116). We assume pulses have a Gaussian envelope as generated
+    by `gen_MB_pulse` - the user supplies the time-bandwidth-product (TBP) needed for this correction. Takes a `tissuepars` struct and returns a copy with 
+    modified `tissuepars.free.R2`.
+    
+    
+## Experiments
 
-    EPG-X(BM) TSE simulation. As above but T1 and T2 both have two compartments and RF saturation parameters are not needed.
-
-#### Implementation of shift operators
-
-Shifts have been implemented using matrices that are defined by separate functions `EPG_shift_matrices.m`, `EPGX_MT_shift_matrices.m` and `EPGX_BM_shift_matrices.m`. They increase the index (k-value) of each F state and map Z states to themselves. They are efficiently defined using matlab sparse matrices.
-
-#### 'kmax' variable
-
-All functions have an optional variable `kmax`. This sets the maximum order of EPG that is included in the calculation.  Reducing will lead to smaller matrices and hence faster operation. The maximum k-value is also varied throughout the sequence in order to exclude states that will not contribute to the signal. See the appendix to [**this paper**](http://dx.doi.org/10.1002/mrm.24153) and supporting information to [**this one**](http://dx.doi.org/10.1002/mrm.25192) for more detail.
-
-#### Diffusion
-Diffusion effects are easily integrated into the EPG framework - see [this paper by Weigel et al](http://dx.doi.org/10.1016/j.jmr.2010.05.011) for detailed information. These are efficiently implemented in the code by combining the diffusion, relaxation (& exchange) and shift operators. The functions `Xi_diff_BM` and `Xi_diff_MT` are coded efficiently to do this. The code is hard to read but effectively creates band diagonal matrices directly using matlab `spdiags` function. For the 'classic' EPG code, the function `E_diff` combines diffusion and relaxation in the same way - this is simpler as the matrix is diagonal.
-
-The code requires a structure 'd' that contains the diffusion coefficient, gradient strengths and durations:
-
-    d = struct;
-    d.D = 2.3e-9; %<- diffusion coeff in m^2/s
-    d.G = [-5.9 4.5 12]; % Gradient values, mT/m
-    d.tau = [1.4 6.6 3]; % Duration of each segment, ms
-
-The gradient and duration values summarise the gradient activity during each TR period. This can be a single value/duration pair, or could in principle represent shaped gradients by containing a list of hundreds of temporal samples. We have used three values for the gradient pre-winder, readout, and spoiler.
-
-#### Prep pulses
-The gradient echo simulation functions `EPG_GRE`, `EPGX_GRE_BM` and `EPGX_GRE_MT` all have the optional variable 'prep'. This can be used to add an inversion (or other) pre-pulse prior to the GRE segment. Note that the pulse is assumed to be well spoiled - only the effect on longitudinal magnetization is considered. The argument will be a structure 'prep' with the following fields:
-
-    prep = struct;
-    prep.flip=pi;   % flip angle, radians
-    prep.t_delay=0; % delay until start of GRE, ms
-    prep.B1SqrdTau=433; % Only needed for MT version - RF energy in prep pulse, units uT^2 ms
-
-#### 'zinit'
-Functions `EPG_TSE` and `EPGX_TSE_MT` have additional optional variable `zinit`. This can be used to specify the starting longitudinal magnetization Z0, which would otherwise be M0, or [M0a M0b]. This is used for test 4 - multi-slice TSE - which chains multiple simulations together. Only the Z0 states are assumed to be carried over between runs.
+The scripts in the folder `experiments` may be used to replicate certain experiments.

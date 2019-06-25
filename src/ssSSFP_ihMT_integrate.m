@@ -1,6 +1,6 @@
 %%% [Mss,Mz] = ssSSFP_ihMT_integrate(b1pulse,dt,Delta_Hz,TR,dphi, tissuepars)
 %
-%   Steady-state ihMT SPGR sequence with eigenvector based time integration method
+%   Steady-state ihMT bSSFP sequence with eigenvector based time integration method
 %
 %   INPUTS:         
 %           b1pulse    = RF pulse, Mx3 array (M=#timepoints, 3=frequency

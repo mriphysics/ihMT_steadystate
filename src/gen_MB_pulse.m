@@ -1,6 +1,17 @@
 function [pulseMB, b1sqrd, pulse_per_band,TBP] = gen_MB_pulse(theta,tau,TR,b1rms_total,delta,nband,varargin)
 %%% function based on publication
 %%% [pulseMB, b1sqrd, pulse_per_band,TBP] = gen_MB_pulse(theta,tau,TR,b1rms_total,delta,nband,varargin)
+%%%   	arguments:
+% %   	-  theta: 		on-resonance flip angle (rad)
+% % 	-  tau:   		pulse duration (s)
+% % 	-  TR:    		repetition time (s)
+% % 	-  b1rms_total: overall RMS B1 of the whole sequence (uT)
+% % 	-  delta:	    offset frequency for off-resonant bands (Hz) 
+% % 	-  nband:		string argument for number of bands. Options are '2+', '2-', or '3'.
+% % 	
+% % 	optional arguments:
+% % 	-  alpha:		scalar value determining width of Gaussian envelope for pulse (default is 3)
+% % 	-  dt:			RF sampling duration. Default 6.4us
 %%% Feb 2019
 %%% April 2009 - output the TBP as well
 %%% 

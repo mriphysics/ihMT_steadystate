@@ -1,6 +1,6 @@
 %%% function [Mss,Mz] = ssSSFP_ihMT(flipangle,b1sqrd,Delta_Hz,TR,tau,dphi, tissuepars,varargin)
 %
-%   Steady-state ihMT SPGR sequence. For non-selective multiband sequences
+%   Steady-state ihMT bSSFP sequence. For non-selective multiband sequences
 %
 %   INPUTS:         
 %           flipangle  = flip angle on resonance (rad)
