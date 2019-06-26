@@ -6,8 +6,13 @@ and builds on prior work using non-selective multi-band RF pulses for [controlli
 A paper describing the theory and experiments implemented in this repo is currently under
 review and links will be posted as soon as it is published. A related abstract was presented at [ISMRM 2019 (#427)](https://cds.ismrm.org/protected/19MPresentations/abstracts/0427.html)
 
-**This code is distributed under the GNU General Public License v3 (see the included LICENSE.txt). Please cite our work appropriately if you use it and link any extensions back to this repo**
+**This code is distributed under the GNU General Public License v3 (see the included [LICENSE](LICENSE.txt)). Please cite our work appropriately if you use it and link any extensions back to this repo**
 
+    
+    
+This code has been tested using Matlab R2018b. Please get in touch to report any bugs.
+    
+    
 Shaihan Malik, King's College London, June 2019.
 [@shaihanmalik](https://twitter.com/shaihanmalik)
 
