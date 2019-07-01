@@ -57,7 +57,7 @@ IX = [5 2 3 4];
 
 %%% Get the data for each phantom into a cell array
 xdata = {};
-
+sdata = {};
 for jj=1:4
     tmp = squeeze(kdata{IX(jj),1});
     % average the 2+ and 2- data
@@ -75,9 +75,16 @@ for jj=1:4
     xdata{jj,1} = permute(tmp/1000,[2 3 1]);
     xdata{jj,2} = permute(tmp2/1000,[2 3 1]);
  
-    % average over the whole phantom
+    % standard deviation
+    sdata{jj,1} = std(xdata{jj,1},1,3);
+    sdata{jj,2} = std(xdata{jj,2},1,3);
+    % also store number of samples
+    sdata{jj,3} = size(xdata{jj,1},3);
+    
+    % average over the whole phantom 
     xdata{jj,1} = mean(xdata{jj,1},3);
     xdata{jj,2} = mean(xdata{jj,2},3);
+    
 end
 
 
@@ -208,6 +215,77 @@ gg(3).Position = [0.8296    0.4095    0.1559    0.2314];
 
 % print -dpng -r300 figs/ihMT_phantom_plots.png
 
+%% Alternative version with error bars
+
+titles = {'Water with MnCl_2','BSA','PL-161','Hair Conditioner'};
+nr=2;nc=2;
+ms=3;
+
+figfp(1)
+
+for jj=1:4
+    
+    %%% Get the data again, this time don't average S2B+ and S2B- or
+    %%% rescale by 1000
+    xd1 = squeeze(mean(kdata{IX(jj),1},1));
+    xd2 = squeeze(mean(kdata{IX(jj),2},1));
+
+    %%% standard error
+    n = size(kdata{IX(jj),1},1);
+    CI95 = tinv([0.025 0.975],n-1);
+    sd1 = CI95(2)*squeeze(std(kdata{IX(jj),1},[],1))/sqrt(n);
+    sd2 = CI95(2)*squeeze(std(kdata{IX(jj),2},[],1))/sqrt(n);
+    
+    subplot(nr,nc,jj)
+    
+    %%% Plot Data
+    %tmp1=plot(seq_pars.flips*180/pi,xd1,'o','markersize',ms);
+    tmp1 = errorbar(repmat(seq_pars.flips'*180/pi,1,4),xd1,sd1,'s','markersize',ms);
+    for ii=1:4
+        tmp1(ii).MarkerFaceColor = tmp1(ii).Color;
+    end
+    hold on
+    %tmp2=plot(seq_pars_spgr.flips*180/pi,xd2,'V','markersize',ms);
+    tmp2 = errorbar(repmat(seq_pars_spgr.flips'*180/pi,1,4),xd2,sd2,'^','markersize',ms);
+    for ii=1:4
+        tmp2(ii).MarkerFaceColor = tmp1(ii).Color;
+        tmp2(ii).Color = tmp1(ii).Color;
+    end
+    grid on
+    xlabel('Flip angle, degrees')
+    ylabel('Signal (au)')
+    
+    if jj==2
+        ll=legend('bSSFP: 1B','bSSFP: 2^+B','bSSFP: 2^-B','bSSFP: 3B','SPGR:  1B','SPGR:  2^+B','SPGR:  2^-B','SPGR:  3B','AutoUpdate','off');
+        ll.Location = 'EastOutside';
+        ll.FontSize = 9;
+    end
+    
+    %%% Plot fits, scale up by 1000 to match unscaled data
+    plot(seq_pars.flips*180/pi,1000*ssfp_ihmt_fit_fwd_model(sol{jj},seq_pars,flag),'-','Color',[0 0 0])
+    plot(seq_pars_spgr.flips*180/pi,1000*spgr_ihmt_fit_fwd_model(sol{jj},seq_pars_spgr,flag),'-','Color',[0 0 0])
+    
+    %%% Label NRMSE
+    yl=get(gca,'YLim');
+    ylim([0 1.1*yl(2)]);
+    text(40,yl(1)+(yl(2)-yl(1))/3.8,sprintf('NRMSE = %1.2f %%',nrmse(jj)),'fontweight','bold','fontsize',12)
+    
+    title(titles{jj},'fontsize',12)
+end
+setpospap([100 100 850 550])
+
+gg = get(gcf,'Children');
+
+gg(5).Position = [0.07 0.58 0.32 0.34];
+gg(2).Position = [0.07 0.11 0.32 0.34];
+gg(4).Position = [0.49 0.58 0.32 0.34];
+gg(1).Position = [0.49 0.11 0.32 0.34];
+gg(3).Position = [0.8296    0.4095    0.1559    0.2314];
+
+
+
+
+
 %% Add a plot of the ihMT ratio and ihMT difference for measured and simulated data based on 
 % fitted parameters
 
@@ -252,9 +330,66 @@ for jj=1:4
 end
 setpospap([100 100 850 550])
 
-% print -dpng -r300 figs/ihMT_phantom_MTRihMTRplots.png
 
+%% Repeat above but with proper error propagation for MTR and ihMTR
 
+titles = {'Water with MnCl_2','BSA','PL-161','Hair Conditioner'};
+nr=2;nc=2;
+ms=4;
+
+figfp(1)
+
+for jj=1:4
+   
+    subplot(nr,nc,jj)
+    
+    hold on 
+    grid on
+    
+    for kk=1:2 %<--- loop over sequence type 1=bSSFP, 2=SPGR
+        
+        ihMTR = 100*(xdata{jj,kk}(:,2)-xdata{jj,kk}(:,3))./xdata{jj,kk}(:,1);
+        var_ihMTR = ihMTR.^2 .* ( (sdata{jj,kk}(:,2).^2+sdata{jj,kk}(:,3).^2)./(xdata{jj,kk}(:,2)-xdata{jj,kk}(:,3)).^2 + sdata{jj,kk}(:,1).^2./xdata{jj,kk}(:,1).^2);
+        sig_ihMTR = sqrt(var_ihMTR);
+        %%% 95% confidence interval - valid to do here rather than on
+        %%% individual variables because n is the same for all
+        ci_ihMTR = tinv([0.975],sdata{jj,3}-1) * sig_ihMTR / sqrt(sdata{jj,3});
+        
+        MTR = 100*(xdata{jj,kk}(:,1)-xdata{jj,kk}(:,2))./xdata{jj,kk}(:,1);
+        var_MTR = MTR.^2 .* ( (sdata{jj,kk}(:,1).^2+sdata{jj,kk}(:,2).^2)./(xdata{jj,kk}(:,1)-xdata{jj,kk}(:,2)).^2 + sdata{jj,kk}(:,1).^2./xdata{jj,kk}(:,1).^2);
+        sig_MTR = sqrt(var_MTR);
+        %%% 95% confidence interval
+        ci_MTR = tinv([0.975],sdata{jj,3}-1) * sig_MTR / sqrt(sdata{jj,3});
+        
+        
+        %%% Plot Data
+        if kk==1
+            tmp3=errorbar(seq_pars.flips*180/pi,MTR,ci_MTR,'o','markersize',ms,'color',[0 0 1]*0.5,'markerfacecolor',[0.5 0.5 1]);
+            tmp1=errorbar(seq_pars.flips*180/pi,ihMTR,ci_ihMTR,'o','markersize',ms,'color',[0 1 0]*0.5,'markerfacecolor',[0.5 1 0.5]);
+        else
+            tmp4=errorbar(seq_pars_spgr.flips*180/pi,MTR,ci_MTR,'^','markersize',ms,'color',[0 0 1]*0.5,'markerfacecolor',[0.5 0.5 1]);
+            tmp2=errorbar(seq_pars_spgr.flips*180/pi,ihMTR,ci_ihMTR,'^','markersize',ms,'color',[0 1 0]*0.5,'markerfacecolor',[0.5 1 0.5]);
+        end
+    end
+    grid on
+    grid on
+    xlabel('Flip angle, degrees')
+    ylabel('Ratio (% of S_{1B})')
+    
+    if jj==1
+        ll=legend('MTR, bSSFP','MTR, SPGR','ihMTR, bSSFP','ihMTR, SPGR','AutoUpdate','off');
+        %ll.Location = 'EastOutside';
+        ll.FontSize = 12;
+    end
+    yl = get(gca,'YLim');
+    ylim([yl(1) 60])
+    
+    gg=gca;
+    gg.XAxisLocation = 'origin';
+
+    title(titles{jj},'fontsize',12)
+end
+setpospap([100 100 850 550])
 
 %% Bootstrapping for uncertainty determination
 

@@ -96,7 +96,7 @@ The work that this code relates to uses multiband RF pulses for simultaneous sat
 These pulses may be designed to have equal RF power that is distributed differently (as needed) over one, two, or 
 three different frequency bands with offset frequencies &Delta;.
 
-<img src="figs/mb_fig.png" align="center" alt="Model" width="60%">
+<img src="figs/mb_fig.jpg" align="center" alt="Model" width="60%">
 
 The illustration shows three different pulses all with the same total power. These can be 
 generated using `gen_MB_pulse.m`:
