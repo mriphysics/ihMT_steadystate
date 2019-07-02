@@ -226,8 +226,22 @@ and `ssSPGR_ihMT`) with temporal integration including the shaped RF waveforms (
 Comparisons are made for different dipolar relaxation times (R1D) and pulse durations, and it is shown that the [Bieri Scheffler correction]((https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.22116))
 is enough to correct the instantaneous approximation results in most cases. The script also compares the eigenvector based method for finding the steady-state 
 used in `ssSSFP_ihMT_integrate` and `ssSPGR_ihMT_integrate` with time-integration over multiple TR periods to reach the steady-state.
-    
-    
+
+	
+Our proposed time integration method is unlike other approaches which simply run a Bloch (or Bloch-McConnell) simulation 
+over many TR periods in order to reach the steady-state; instead we use an eigenvalue approach that directly computes
+the steady-state after integrating over one TR period. In this script we have also run a simple comparison with this
+method which is referred to as 'MAMT' after [this paper by Portnoy and Stanisz](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.21244). 
+This result was not included in the paper. The comparison shows that the relative benefit of the proposed direct integration method scales linearly with the number of TR periods
+that are simulated. 
+	
+<img src="figs/MAMT_comparison_fig.jpg" align="center" alt="Model" width="80%">
+	
+	
+For the white matter example shown here the required number of TR periods to reach very low error is approximately 400 
+and for this length of simulation the relative speed-up from the eigenvalue method is a factor of approximately 300.
+  
+      
 #### Experimental data fitting
 Experiments were performed using SPGR and bSSFP with a range of flip angles on a sample consisting of:
 -   Water doped win MnCl2, not expected to have MT or ihMT effect
