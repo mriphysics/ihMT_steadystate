@@ -1,0 +1,4 @@
+This folder should contain the following .mat files, downloadable from the 'releases' section on github:
+
+- fitdata.mat  --- data from phantom experiment
+- bootstrapdata.mat --- results from bootstrapping calculation
