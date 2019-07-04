@@ -25,7 +25,7 @@ The code implements the model described by the following diagram:
 Tissue consists of a main compartment of free water, and two semisolid compartments s1 and s2
 that are both in contact with the free water pool but not each other. Compartment s1 consists
 only of Zeeman ordered magnetization, while s2 contains both Zeeman and Dipolar ordered terms. The 
-relative fractions of these are _f_ and _(1-f)_ respectively. 
+relative fractions of these are *f and (1-f)* respectively. 
 
 Tissue properties are contained within a struct `tissuepars` which is constructed as follows:
 	
