@@ -173,11 +173,11 @@ plot(rad2deg(flips),100*(abs(Mspgr(:,2,2))-abs(Mspgr(:,3,2))),'linewidth',1.5)
 grid on
 hold on
 plot(rad2deg(flips),100*(abs(Mssfp(:,2,2))-abs(Mssfp(:,3,2))),'linewidth',1.5)
-
+ylim([0 1.4])
 xlabel('Flip angle, deg')
 ylabel('\DeltaihMT (percent of M_0)')
 title('\DeltaihMT','fontsize',14,'fontweight','bold')
-ll=legend('SPGR','bSSFP');ll.FontSize=12;
+ll=legend('SPGR','bSSFP');ll.FontSize=11;
 
 subplot(3,1,2)
 plot(rad2deg(flips),(abs(Mspgr(:,2,2))-abs(Mspgr(:,3,2)))./abs(Mspgr(:,1,2)),'linewidth',1.5)
@@ -188,7 +188,7 @@ plot(rad2deg(flips),(abs(Mssfp(:,2,2))-abs(Mssfp(:,3,2)))./abs(Mssfp(:,1,2)),'li
 xlabel('Flip angle, deg')
 ylabel('ihMTR (ratio)')
 title('ihMTR','fontsize',14,'fontweight','bold')
-ll=legend('SPGR','bSSFP');ll.FontSize=12;
+ll=legend('SPGR','bSSFP');ll.FontSize=11;
 
 
 
@@ -199,7 +199,7 @@ grid on
 xlabel('Flip angle, deg')
 ylabel('$\sqrt<B_1^2(\Delta\neq 0)>,\mu T$','interpreter','Latex')
 title('Off-resonance B_1^{rms}','fontsize',14,'fontweight','bold')
-ylim([0 5]);
+ylim([0 6]);
 
 setpospap([00 00 400 700])
 print -dpng -r300 figs/simplefigure_supportinginfo.png
