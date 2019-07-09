@@ -180,13 +180,13 @@ title('\DeltaihMT','fontsize',14,'fontweight','bold')
 ll=legend('SPGR','bSSFP');ll.FontSize=11;
 
 subplot(3,1,2)
-plot(rad2deg(flips),(abs(Mspgr(:,2,2))-abs(Mspgr(:,3,2)))./abs(Mspgr(:,1,2)),'linewidth',1.5)
+plot(rad2deg(flips),100*(abs(Mspgr(:,2,2))-abs(Mspgr(:,3,2)))./abs(Mspgr(:,1,2)),'linewidth',1.5)
 grid on
 hold on
-plot(rad2deg(flips),(abs(Mssfp(:,2,2))-abs(Mssfp(:,3,2)))./abs(Mssfp(:,1,2)),'linewidth',1.5)
+plot(rad2deg(flips),100*(abs(Mssfp(:,2,2))-abs(Mssfp(:,3,2)))./abs(Mssfp(:,1,2)),'linewidth',1.5)
 
 xlabel('Flip angle, deg')
-ylabel('ihMTR (ratio)')
+ylabel('ihMTR  (% of S_{1B})')
 title('ihMTR','fontsize',14,'fontweight','bold')
 ll=legend('SPGR','bSSFP');ll.FontSize=11;
 
