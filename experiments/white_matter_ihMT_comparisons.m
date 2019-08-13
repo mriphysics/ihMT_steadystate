@@ -118,28 +118,28 @@ inBetween = [abs(Mssfp(:,1,1)); flip(abs(Mssfp(:,2,1)),1)];
 x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
 fh=fill(x2, inBetween, 'b');
 fh.EdgeColor = 'none';
-fh.FaceAlpha=0.1;
+fh.FaceAlpha=0.2;
 
 axes(gg(4))
 inBetween = [abs(Mspgr(:,1,1)); flip(abs(Mspgr(:,2,1)),1)];
 x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
 fh=fill(x2, inBetween, 'b');
 fh.EdgeColor = 'none';
-fh.FaceAlpha=0.1;
+fh.FaceAlpha=0.2;
 
 axes(gg(3))
 inBetween = [abs(Mssfp(:,2,2)); flip(abs(Mssfp(:,3,2)),1)];
 x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
 fh=fill(x2, inBetween, 'g');
 fh.EdgeColor = 'none';
-fh.FaceAlpha=0.1;
+fh.FaceAlpha=0.2;
 
 axes(gg(2))
 inBetween = [abs(Mspgr(:,2,2)); flip(abs(Mspgr(:,3,2)),1)];
 x2 = [rad2deg(flips) flip(rad2deg(flips),2)];
 fh=fill(x2, inBetween, 'g');
 fh.EdgeColor = 'none';
-fh.FaceAlpha=0.1;
+fh.FaceAlpha=0.2;
 
 %%% text labels
 axes(gg(5))
@@ -160,9 +160,11 @@ a2.HeadStyle = 'cback1';
 a1.HeadWidth = 6;
 a2.HeadWidth = 6;
 %
-
-
+for ii=2:5
+    gg(ii).Color = [1 1 1]*0.95;
+end
 setpospap([100 100 777 590])
+set(gcf, 'InvertHardcopy', 'off')
 print -dpng -r300 figs/simplefigure.png
 
 %% Add supporting information figure on ihMTR and B1rms

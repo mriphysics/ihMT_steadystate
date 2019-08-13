@@ -377,6 +377,7 @@ for jj=1:4
     ylabel('Ratio (% of S_{1B})')
     
     if jj==1
+        ll=legend('MTR, bSSFP','ihMTR, bSSFP','MTR, SPGR','ihMTR, SPGR','AutoUpdate','off');
         ll=legend('MTR, bSSFP','MTR, SPGR','ihMTR, bSSFP','ihMTR, SPGR','AutoUpdate','off');
         %ll.Location = 'EastOutside';
         ll.FontSize = 12;
@@ -390,6 +391,81 @@ for jj=1:4
     title(titles{jj},'fontsize',12)
 end
 setpospap([100 100 850 550])
+
+
+%% Repeat above but with proper error propagation for MTR and ihMTR
+%% Second version, with separate y-axes
+
+titles = {'Water with MnCl_2','BSA','PL-161','Hair Conditioner'};
+nr=2;nc=2;
+ms=4;
+
+figfp(1)
+
+for jj=1:4
+   
+    subplot(nr,nc,jj)
+    
+    hold on 
+    grid on
+    
+    for kk=1:2 %<--- loop over sequence type 1=bSSFP, 2=SPGR
+        
+        ihMTR = 100*(xdata{jj,kk}(:,2)-xdata{jj,kk}(:,3))./xdata{jj,kk}(:,1);
+        var_ihMTR = ihMTR.^2 .* ( (sdata{jj,kk}(:,2).^2+sdata{jj,kk}(:,3).^2)./(xdata{jj,kk}(:,2)-xdata{jj,kk}(:,3)).^2 + sdata{jj,kk}(:,1).^2./xdata{jj,kk}(:,1).^2);
+        sig_ihMTR = sqrt(var_ihMTR);
+        %%% 95% confidence interval - valid to do here rather than on
+        %%% individual variables because n is the same for all
+        ci_ihMTR = tinv([0.975],sdata{jj,3}-1) * sig_ihMTR / sqrt(sdata{jj,3});
+        
+        MTR = 100*(xdata{jj,kk}(:,1)-xdata{jj,kk}(:,2))./xdata{jj,kk}(:,1);
+        var_MTR = MTR.^2 .* ( (sdata{jj,kk}(:,1).^2+sdata{jj,kk}(:,2).^2)./(xdata{jj,kk}(:,1)-xdata{jj,kk}(:,2)).^2 + sdata{jj,kk}(:,1).^2./xdata{jj,kk}(:,1).^2);
+        sig_MTR = sqrt(var_MTR);
+        %%% 95% confidence interval
+        ci_MTR = tinv([0.975],sdata{jj,3}-1) * sig_MTR / sqrt(sdata{jj,3});
+        
+        
+        %%% Plot Data
+        if kk==1
+            yyaxis left
+            tmp3=errorbar(seq_pars.flips*180/pi,MTR,ci_MTR,'o','markersize',ms,'color',[0 0 1]*0.5,'markerfacecolor',[0.5 0.5 1]);
+            yyaxis right
+            tmp1=errorbar(seq_pars.flips*180/pi,ihMTR,ci_ihMTR,'o','markersize',ms,'color',[0 1 0]*0.5,'markerfacecolor',[0.5 1 0.5]);
+        else
+            yyaxis left
+            tmp4=errorbar(seq_pars_spgr.flips*180/pi,MTR,ci_MTR,'^','markersize',ms,'color',[0 0 1]*0.5,'markerfacecolor',[0.5 0.5 1]);
+            yyaxis right
+            tmp2=errorbar(seq_pars_spgr.flips*180/pi,ihMTR,ci_ihMTR,'^','markersize',ms,'color',[0 1 0]*0.5,'markerfacecolor',[0.5 1 0.5]);
+        end
+    end
+    grid on
+    grid on
+    xlabel('Flip angle, degrees')
+    
+    
+    if jj==1
+        ll=legend('MTR, bSSFP','MTR, SPGR','ihMTR, bSSFP','ihMTR, SPGR','AutoUpdate','off');
+        %ll.Location = 'EastOutside';
+        ll.FontSize = 12;
+    end
+    yyaxis left
+    yl = get(gca,'YLim');
+    ylim([-5 60])
+    ylabel('MTR (% of S_{1B})')
+    gg=gca;
+    gg.YColor = [0 0 1]*0.5;
+    yyaxis right
+    yl = get(gca,'YLim');
+    ylim([-20/12 20])
+    ylabel('ihMTR (% of S_{1B})')
+    gg=gca;
+    gg.YColor = [0 1 0]*0.5;
+    %gg.XAxisLocation = 'origin';
+
+    title(titles{jj},'fontsize',12)
+end
+setpospap([100 100 850 550])
+
 
 %% Bootstrapping for uncertainty determination
 
