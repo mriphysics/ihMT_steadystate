@@ -3,11 +3,11 @@ This software can be used for simulating the steady-state of bSSFP and SPGR MRI 
 when employing multi-band pulses in tissues with [inhomogeneous MT effects](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.25174)
 and builds on prior work using non-selective multi-band RF pulses for [controlling saturation of MT effects](https://onlinelibrary.wiley.com/doi/10.1002/mrm.27442).
 
-Please see [(this paper - open-access!)](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.27984) for a full description of the theory and experiments contained in this repo.
+Please see [this paper](https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.27984) (open-access!) for a full description of the theory and experiments contained in this repo.
 
 **This code is distributed under the GNU General Public License v3 (see the included [LICENSE](LICENSE.txt)). Please cite our work appropriately if you use it and link any extensions back to this repo**
 
-    
+
 This code has been tested using Matlab R2018b. Please get in touch to report any bugs.
 
 
